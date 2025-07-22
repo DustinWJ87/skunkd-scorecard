@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import NewGameSetup from '../NewGameSetup';
-import Scorecard from '../Scorecard';
-import { calculateScore, checkWinCondition, useMulligan, useSixTwoEven } from '../scoringEngine';
+import NewGameSetup from './components/NewGameSetup';
+import Scorecard from './components/Scorecard';
+import { calculateScore, checkWinCondition, useMulligan, useSixTwoEven } from './utils/scoringEngine';
 
 function App() {
   const [screen, setScreen] = useState('setup');
