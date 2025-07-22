@@ -1,0 +1,17 @@
+/* CSS styles for SKUNK'D game */
+
+.dice-box {
+  background: #000;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px;
+}
+.dice-img {
+  width: 40px;
+  height: 40px;
+}
