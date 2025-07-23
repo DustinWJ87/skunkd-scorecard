@@ -80,7 +80,17 @@ function getNextActivePlayerIdx(currentIdx, eliminated) {
 function loadGameHistory() {
   try {
     const raw = localStorage.getItem('skunkdGameHistory');
-    return raw ? JSON.parse(raw) : [];
+    const history = raw ? JSON.parse(raw) : [];
+    // Migrate old string notes to array format
+    return history.map(game => {
+      if (typeof game.notes === 'string') {
+        return {
+          ...game,
+          notes: game.notes ? [{ text: game.notes, timestamp: game.date }] : []
+        };
+      }
+      return game;
+    });
   } catch {
     return [];
   }
@@ -110,9 +120,10 @@ export default function App() {
   const [eliminated, setEliminated] = useState([]);
   const [winnerIdx, setWinnerIdx] = useState(null);
 
-  const [notesHistory, setNotesHistory] = useState('');
+  const [notesHistory, setNotesHistory] = useState([]);
   const [gameHistory, setGameHistory] = useState(loadGameHistory());
   const [showHistory, setShowHistory] = useState(false);
+  const [turnHistory, setTurnHistory] = useState([]);
 
   // Global undo functionality - tracks snapshots of entire game state
   const [undoHistory, setUndoHistory] = useState([]);
@@ -179,6 +190,39 @@ export default function App() {
     }));
   }
 
+  // Create a snapshot of the current game state for undo functionality
+  function createSnapshot() {
+    const snapshot = {
+      scores: [...scores],
+      currentPlayerIdx,
+      overtime,
+      leaderIdx,
+      leaderScore,
+      eliminated: [...eliminated],
+      winnerIdx,
+      notesHistory
+    };
+    setTurnHistory(prev => [...prev, snapshot]);
+  }
+
+  // Undo the last turn by restoring the previous game state
+  function undoLastTurn() {
+    if (turnHistory.length === 0) return;
+    
+    const lastSnapshot = turnHistory[turnHistory.length - 1];
+    setScores([...lastSnapshot.scores]);
+    setCurrentPlayerIdx(lastSnapshot.currentPlayerIdx);
+    setOvertime(lastSnapshot.overtime);
+    setLeaderIdx(lastSnapshot.leaderIdx);
+    setLeaderScore(lastSnapshot.leaderScore);
+    setEliminated([...lastSnapshot.eliminated]);
+    setWinnerIdx(lastSnapshot.winnerIdx);
+    setNotesHistory(lastSnapshot.notesHistory);
+    
+    // Remove the last snapshot from history
+    setTurnHistory(prev => prev.slice(0, -1));
+  }
+
   function handleAddPlayer() {
     setPlayerNames([...playerNames, '']);
   }
@@ -200,16 +244,11 @@ export default function App() {
     setLeaderScore(null);
     setEliminated(filteredNames.map(() => false));
     setWinnerIdx(null);
-    setNotesHistory('');
-    // Clear undo history when starting a new game
-    setUndoHistory([]);
   }
 
   function handleBankPoints(points) {
     if (winnerIdx !== null) return;
     
-    // Save snapshot before banking points (major game state change)
-    saveGameSnapshot();
     
     const updatedScores = [...scores];
     updatedScores[currentPlayerIdx] += points;
@@ -287,9 +326,6 @@ export default function App() {
     setLeaderScore(null);
     setEliminated([]);
     setWinnerIdx(null);
-    setNotesHistory('');
-    // Clear undo history when resetting the game
-    setUndoHistory([]);
   }
 
   // Save game to history
@@ -477,6 +513,23 @@ export default function App() {
             </div>
           )}
           <br />
+          <button 
+            onClick={undoLastTurn}
+            disabled={turnHistory.length === 0}
+            style={{ 
+              marginTop: 16, 
+              marginRight: 10,
+              background: turnHistory.length === 0 ? "#444" : "#ffd700", 
+              color: turnHistory.length === 0 ? "#888" : "#222",
+              cursor: turnHistory.length === 0 ? "not-allowed" : "pointer",
+              border: "none",
+              borderRadius: "8px",
+              padding: "8px 16px",
+              fontWeight: "bold"
+            }}
+          >
+            Undo Last Turn
+          </button>
           <button onClick={resetGame} style={{ marginTop: 16 }}>Reset Game</button>
         </div>
       )}

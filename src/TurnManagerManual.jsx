@@ -28,14 +28,25 @@ export default function TurnManagerManual({
   const [denPoints, setDenPoints] = useState(0);
   const [message, setMessage] = useState('');
   const [manualInput, setManualInput] = useState('');
-  const [notes, setNotes] = useState(notesHistory || '');
-  // Removed local history state - now using global undo
+
   const [cheatOpen, setCheatOpen] = useState(false);
 
   // Update notes in history on change
   useEffect(() => {
     if (onNotesChange) onNotesChange(notes);
   }, [notes, onNotesChange]);
+
+  // Add a note to the notes array
+  function addNote() {
+    if (currentNote.trim()) {
+      const newNote = {
+        text: currentNote.trim(),
+        timestamp: Date.now()
+      };
+      setNotes([...notes, newNote]);
+      setCurrentNote('');
+    }
+  }
 
   // Calculate score needed to pass leader in overtime
   const scoreNeeded = overtime && leaderScore != null && playerScore != null
@@ -57,7 +68,6 @@ export default function TurnManagerManual({
     if (onScoreBoard) onScoreBoard(denPoints);
     setMessage('Turn ended! Points banked.');
     setDenPoints(0);
-    setNotes('');
     if (onEndTurn) onEndTurn();
   }
 
@@ -66,8 +76,6 @@ export default function TurnManagerManual({
     if (onSkunkTurn) onSkunkTurn();
     setDenPoints(0);
     setMessage('SKUNK’D! No points banked.');
-
-    setNotes('');
   }
 
   // Removed undoLast function - now using global undo functionality
@@ -175,10 +183,13 @@ export default function TurnManagerManual({
   // Share final results UI when winnerIdx
   function renderShareSection() {
     if (typeof winnerIdx !== 'number' || !players || !scores) return null;
+    const notesText = notes.length > 0
+      ? notes.map(note => `  ${new Date(note.timestamp).toLocaleTimeString()}: ${note.text}`).join('\n')
+      : "None";
     const shareText = [
       `SKUNK'D Game Results:`,
       ...players.map((p, i) => `${p}: ${scores[i]}${winnerIdx === i ? " 👑 Winner!" : ""}`),
-      `Notes: ${notes || "None"}`
+      `Notes:\n${notesText}`
     ].join('\n');
     return (
       <div style={{
@@ -249,11 +260,17 @@ export default function TurnManagerManual({
       <img src={skunkdIcon} alt="SKUNK'D Mascot" style={iconStyle} />
       {/* Sticky note for notes */}
       <div style={stickyNoteStyle}>
-        <strong>Notes:</strong>
+        <strong>Add Note:</strong>
         <textarea
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
+          value={currentNote}
+          onChange={e => setCurrentNote(e.target.value)}
           placeholder="Jot down player remarks, bonus, etc..."
+          onKeyDown={e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              addNote();
+            }
+          }}
           style={{
             width: "100%",
             minHeight: "38px",
@@ -266,6 +283,42 @@ export default function TurnManagerManual({
             marginTop: "6px"
           }}
         />
+        <button
+          onClick={addNote}
+          disabled={!currentNote.trim()}
+          style={{
+            marginTop: "6px",
+            background: currentNote.trim() ? "#ffd700" : "#ccc",
+            color: "#222",
+            border: "none",
+            borderRadius: "4px",
+            padding: "4px 8px",
+            fontSize: "0.9em",
+            cursor: currentNote.trim() ? "pointer" : "not-allowed"
+          }}
+        >
+          Add Note
+        </button>
+        {notes.length > 0 && (
+          <div style={{ marginTop: "8px", maxHeight: "120px", overflow: "auto" }}>
+            <strong style={{ fontSize: "0.9em" }}>Game Notes:</strong>
+            {notes.map((note, idx) => (
+              <div key={idx} style={{
+                fontSize: "0.8em",
+                margin: "2px 0",
+                padding: "2px 4px",
+                background: "#f9f9f9",
+                borderRadius: "3px",
+                border: "1px solid #ddd"
+              }}>
+                <div style={{ fontWeight: "bold", color: "#666" }}>
+                  {new Date(note.timestamp).toLocaleTimeString()}
+                </div>
+                <div>{note.text}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       {/* Cheat Sheet Toggle Button */}
       <button

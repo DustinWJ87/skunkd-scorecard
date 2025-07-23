@@ -54,7 +54,18 @@ export default function GameHistoryModal({ history, open, onClose }) {
                     background: "#fffbe5", color: "#333", fontFamily: "Caveat, cursive",
                     borderRadius: 8, padding: "8px 13px", marginTop: 4, minHeight: 32
                   }}>
-                    {game.notes || <span style={{ color: "#aaa" }}>None</span>}
+                    {Array.isArray(game.notes) && game.notes.length > 0 ? (
+                      game.notes.map((note, noteIdx) => (
+                        <div key={noteIdx} style={{ margin: "4px 0" }}>
+                          <span style={{ fontWeight: "bold", fontSize: "0.9em", color: "#666" }}>
+                            {new Date(note.timestamp).toLocaleTimeString()}:
+                          </span>
+                          <span style={{ marginLeft: "6px" }}>{note.text}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <span style={{ color: "#aaa" }}>None</span>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -64,11 +75,14 @@ export default function GameHistoryModal({ history, open, onClose }) {
                       padding: "7px 14px", border: "none", fontWeight: "bold", cursor: "pointer"
                     }}
                     onClick={() => {
+                      const notesText = Array.isArray(game.notes) && game.notes.length > 0
+                        ? game.notes.map(note => `  ${new Date(note.timestamp).toLocaleTimeString()}: ${note.text}`).join('\n')
+                        : "None";
                       const shareText = [
                         `SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
                         ...game.players.map((p, i) =>
                           `${p}: ${game.scores[i]}${game.winnerIdx === i ? " 👑 Winner!" : ""}`),
-                        `Notes: ${game.notes || "None"}`
+                        `Notes:\n${notesText}`
                       ].join('\n');
                       if (navigator.share) {
                         navigator.share({ title: "SKUNK'D Results", text: shareText });
@@ -84,11 +98,14 @@ export default function GameHistoryModal({ history, open, onClose }) {
                       padding: "7px 14px", border: "none", fontWeight: "bold", cursor: "pointer"
                     }}
                     onClick={() => {
+                      const notesText = Array.isArray(game.notes) && game.notes.length > 0
+                        ? game.notes.map(note => `  ${new Date(note.timestamp).toLocaleTimeString()}: ${note.text}`).join('\n')
+                        : "None";
                       const shareText = [
                         `SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
                         ...game.players.map((p, i) =>
                           `${p}: ${game.scores[i]}${game.winnerIdx === i ? " 👑 Winner!" : ""}`),
-                        `Notes: ${game.notes || "None"}`
+                        `Notes:\n${notesText}`
                       ].join('\n');
                       navigator.clipboard.writeText(shareText);
                       alert('Results copied to clipboard!');
