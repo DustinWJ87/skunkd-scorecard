@@ -80,7 +80,17 @@ function getNextActivePlayerIdx(currentIdx, eliminated) {
 function loadGameHistory() {
   try {
     const raw = localStorage.getItem('skunkdGameHistory');
-    return raw ? JSON.parse(raw) : [];
+    const history = raw ? JSON.parse(raw) : [];
+    // Migrate old string notes to array format
+    return history.map(game => {
+      if (typeof game.notes === 'string') {
+        return {
+          ...game,
+          notes: game.notes ? [{ text: game.notes, timestamp: game.date }] : []
+        };
+      }
+      return game;
+    });
   } catch {
     return [];
   }
@@ -110,7 +120,7 @@ export default function App() {
   const [eliminated, setEliminated] = useState([]);
   const [winnerIdx, setWinnerIdx] = useState(null);
 
-  const [notesHistory, setNotesHistory] = useState('');
+  const [notesHistory, setNotesHistory] = useState([]);
   const [gameHistory, setGameHistory] = useState(loadGameHistory());
   const [showHistory, setShowHistory] = useState(false);
 
@@ -142,7 +152,7 @@ export default function App() {
     setLeaderScore(null);
     setEliminated(filteredNames.map(() => false));
     setWinnerIdx(null);
-    setNotesHistory('');
+    setNotesHistory([]);
   }
 
   function handleBankPoints(points) {
@@ -198,7 +208,7 @@ export default function App() {
     setLeaderScore(null);
     setEliminated([]);
     setWinnerIdx(null);
-    setNotesHistory('');
+    setNotesHistory([]);
   }
 
   // Save game to history
