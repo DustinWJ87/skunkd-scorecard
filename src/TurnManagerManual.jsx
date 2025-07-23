@@ -13,26 +13,29 @@ export default function TurnManagerManual({
   playerScore,
   overtime,
   onScoreBoard,
+  onSkunkTurn,
   onEndTurn,
   winnerIdx,
   scores,
   players,
   onSaveGame,
   notesHistory,
-  setNotesHistory
+  onNotesChange,
+  globalUndoAvailable,
+  onGlobalUndo
 }) {
   // State
   const [denPoints, setDenPoints] = useState(0);
   const [message, setMessage] = useState('');
   const [manualInput, setManualInput] = useState('');
   const [notes, setNotes] = useState(notesHistory || '');
-  const [history, setHistory] = useState([]);
+  // Removed local history state - now using global undo
   const [cheatOpen, setCheatOpen] = useState(false);
 
   // Update notes in history on change
   useEffect(() => {
-    if (setNotesHistory) setNotesHistory(notes);
-  }, [notes, setNotesHistory]);
+    if (onNotesChange) onNotesChange(notes);
+  }, [notes, onNotesChange]);
 
   // Calculate score needed to pass leader in overtime
   const scoreNeeded = overtime && leaderScore != null && playerScore != null
@@ -43,10 +46,10 @@ export default function TurnManagerManual({
   function addPoints() {
     const pts = parseInt(manualInput, 10);
     if (!isNaN(pts) && pts > 0) {
-      setHistory([...history, { type: 'add', value: pts, prevPoints: denPoints }]);
+      // Just add points to den - no need for per-turn undo tracking
       setDenPoints(denPoints + pts);
       setManualInput('');
-      setMessage(`Added ${pts} points!`);
+      setMessage(`Added ${pts} points to sequence!`);
     }
   }
 
@@ -54,35 +57,20 @@ export default function TurnManagerManual({
     if (onScoreBoard) onScoreBoard(denPoints);
     setMessage('Turn ended! Points banked.');
     setDenPoints(0);
-    setHistory([]);
     setNotes('');
     if (onEndTurn) onEndTurn();
   }
 
   function skunkdTurn() {
-    setHistory([...history, { type: 'skunkd', prevPoints: denPoints }]);
+    // Call the new onSkunkTurn handler which will handle global state
+    if (onSkunkTurn) onSkunkTurn();
     setDenPoints(0);
     setMessage('SKUNK’D! No points banked.');
-    if (onScoreBoard) onScoreBoard(0);
-    if (onEndTurn) onEndTurn();
-    setHistory([]);
+
     setNotes('');
   }
 
-  function undoLast() {
-    if (history.length === 0) return;
-    const last = history[history.length - 1];
-    let msg = '';
-    if (last.type === 'add') {
-      setDenPoints(last.prevPoints);
-      msg = `Undid adding ${last.value} points.`;
-    } else if (last.type === 'skunkd') {
-      setDenPoints(last.prevPoints);
-      msg = 'Undid SKUNK’D!';
-    }
-    setMessage(msg);
-    setHistory(history.slice(0, -1));
-  }
+  // Removed undoLast function - now using global undo functionality
 
   // Fun, playful layout styles
   const bgStyle = {
@@ -377,25 +365,6 @@ export default function TurnManagerManual({
               disabled={eliminated}
             >
               Add Points
-            </button>
-            <button
-              onClick={undoLast}
-              style={{
-                background: "#222",
-                color: "#ffd700",
-                fontWeight: "bold",
-                borderRadius: "8px",
-                boxShadow: "0 2px 8px #0003",
-                fontSize: "1.08em",
-                padding: "11px 15px",
-                border: "none",
-                cursor: history.length === 0 ? "not-allowed" : "pointer",
-                opacity: history.length === 0 ? 0.5 : 1
-              }}
-              disabled={history.length === 0}
-              title="Undo last points or SKUNK'D"
-            >
-              Undo
             </button>
             <button
               onClick={bankPoints}
