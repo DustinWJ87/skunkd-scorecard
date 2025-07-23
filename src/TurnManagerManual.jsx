@@ -28,6 +28,8 @@ export default function TurnManagerManual({
   const [denPoints, setDenPoints] = useState(0);
   const [message, setMessage] = useState('');
   const [manualInput, setManualInput] = useState('');
+  const [currentNote, setCurrentNote] = useState('');
+  const [notes, setNotes] = useState(notesHistory || []);
 
   const [cheatOpen, setCheatOpen] = useState(false);
   const [notes, setNotes] = useState(notesHistory || []);
