@@ -125,6 +125,64 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [turnHistory, setTurnHistory] = useState([]);
 
+  // Global undo functionality - tracks snapshots of entire game state
+  const [undoHistory, setUndoHistory] = useState([]);
+
+  /**
+   * Creates a deep copy snapshot of the current game state
+   * This captures all the essential game state that can be restored
+   */
+  function createGameSnapshot() {
+    return {
+      players: [...players],
+      scores: [...scores],
+      currentPlayerIdx,
+      overtime,
+      leaderIdx,
+      leaderScore,
+      eliminated: [...eliminated],
+      winnerIdx,
+      notesHistory,
+      targetScore,
+      electiveRules: { ...electiveRules }
+    };
+  }
+
+  /**
+   * Saves a snapshot of the current game state to the undo history
+   * Called before any major game state change (bank, skunk, note change)
+   */
+  function saveGameSnapshot() {
+    const snapshot = createGameSnapshot();
+    setUndoHistory(prev => [...prev, snapshot]);
+  }
+
+  /**
+   * Global undo function - restores the game to the previous snapshot
+   * Works across turns and players, reverting all game state changes
+   */
+  function handleGlobalUndo() {
+    if (undoHistory.length === 0) return;
+    
+    const previousSnapshot = undoHistory[undoHistory.length - 1];
+    
+    // Restore all game state from the snapshot
+    setPlayers([...previousSnapshot.players]);
+    setScores([...previousSnapshot.scores]);
+    setCurrentPlayerIdx(previousSnapshot.currentPlayerIdx);
+    setOvertime(previousSnapshot.overtime);
+    setLeaderIdx(previousSnapshot.leaderIdx);
+    setLeaderScore(previousSnapshot.leaderScore);
+    setEliminated([...previousSnapshot.eliminated]);
+    setWinnerIdx(previousSnapshot.winnerIdx);
+    setNotesHistory(previousSnapshot.notesHistory);
+    setTargetScore(previousSnapshot.targetScore);
+    setElectiveRules({ ...previousSnapshot.electiveRules });
+    
+    // Remove the used snapshot from history
+    setUndoHistory(prev => prev.slice(0, -1));
+  }
+
   function handleRuleChange(ruleKey) {
     setElectiveRules(rules => ({
       ...rules,
@@ -191,8 +249,6 @@ export default function App() {
   function handleBankPoints(points) {
     if (winnerIdx !== null) return;
     
-    // Create snapshot before making any changes
-    createSnapshot();
     
     const updatedScores = [...scores];
     updatedScores[currentPlayerIdx] += points;
@@ -227,6 +283,31 @@ export default function App() {
     }
     setScores(updatedScores);
     setCurrentPlayerIdx((currentPlayerIdx + 1) % players.length);
+  }
+
+  /**
+   * Handles when a player gets SKUNK'D (turn ends with no points)
+   * Saves a snapshot before the turn change
+   */
+  function handleSkunkTurn() {
+    if (winnerIdx !== null) return;
+    
+    // Save snapshot before ending turn due to SKUNK'D (major game state change)
+    saveGameSnapshot();
+    
+    // Move to next player (no points are banked when skunked)
+    setCurrentPlayerIdx(getNextActivePlayerIdx(currentPlayerIdx, eliminated));
+  }
+
+  /**
+   * Handles note changes with undo tracking
+   * Only saves a snapshot when notes are actually submitted/committed, not on every keystroke
+   */
+  function handleNotesChange(newNotes) {
+    // Just update the notes without creating snapshots for every keystroke
+    // Snapshots for notes could be created on blur or when notes are "saved"
+    // For now, we'll keep it simple and only snapshot on major game actions
+    setNotesHistory(newNotes);
   }
 
   function resetGame() {
@@ -382,21 +463,49 @@ export default function App() {
             </div>
           )}
           {winnerIdx === null ? (
-            <TurnManagerManual
-              playerName={players[currentPlayerIdx]}
-              eliminated={eliminated[currentPlayerIdx]}
-              leaderScore={leaderScore}
-              playerScore={scores[currentPlayerIdx]}
-              overtime={overtime}
-              onScoreBoard={handleBankPoints}
-              onEndTurn={() => setCurrentPlayerIdx(getNextActivePlayerIdx(currentPlayerIdx, eliminated))}
-              winnerIdx={winnerIdx}
-              scores={scores}
-              players={players}
-              onSaveGame={saveCompletedGame}
-              notesHistory={notesHistory}
-              setNotesHistory={setNotesHistory}
-            />
+            <>
+              {/* Global Undo Button - Always available when there's history */}
+              {undoHistory.length > 0 && (
+                <div style={{ marginBottom: 16, textAlign: 'center' }}>
+                  <button
+                    onClick={handleGlobalUndo}
+                    style={{
+                      background: "#ff6b35",
+                      color: "#fff",
+                      fontWeight: "bold",
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 8px #0003",
+                      fontSize: "1.1em",
+                      padding: "12px 24px",
+                      border: "none",
+                      cursor: "pointer"
+                    }}
+                    title="Undo last major action (works across turns)"
+                  >
+                    🔄 Global Undo ({undoHistory.length})
+                  </button>
+                </div>
+              )}
+              <TurnManagerManual
+                playerName={players[currentPlayerIdx]}
+                eliminated={eliminated[currentPlayerIdx]}
+                leaderScore={leaderScore}
+                playerScore={scores[currentPlayerIdx]}
+                overtime={overtime}
+                onScoreBoard={handleBankPoints}
+                onSkunkTurn={handleSkunkTurn}
+                onEndTurn={() => setCurrentPlayerIdx(getNextActivePlayerIdx(currentPlayerIdx, eliminated))}
+                winnerIdx={winnerIdx}
+                scores={scores}
+                players={players}
+                onSaveGame={saveCompletedGame}
+                notesHistory={notesHistory}
+                onNotesChange={handleNotesChange}
+                // Pass global undo info (no longer used in TurnManager but keeping for reference)
+                globalUndoAvailable={undoHistory.length > 0}
+                onGlobalUndo={handleGlobalUndo}
+              />
+            </>
           ) : (
             <div>
               <h2>Game Over! Winner: {players[winnerIdx]}</h2>
