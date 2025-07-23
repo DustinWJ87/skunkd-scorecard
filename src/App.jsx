@@ -185,6 +185,7 @@ export default function App() {
   const [gameHistory, setGameHistory] = useState(addDemoData());
   const [showHistory, setShowHistory] = useState(false);
   const [turnHistory, setTurnHistory] = useState([]);
+  const [showUndoConfirm, setShowUndoConfirm] = useState(false);
   
   // Detailed turn tracking for game history
   const [detailedTurns, setDetailedTurns] = useState([]);
@@ -286,6 +287,12 @@ export default function App() {
     
     // Remove the last snapshot from history
     setTurnHistory(prev => prev.slice(0, -1));
+    setShowUndoConfirm(false);
+  }
+
+  function handleUndoLastTurnClick() {
+    if (turnHistory.length === 0) return;
+    setShowUndoConfirm(true);
   }
 
   function handleAddPlayer() {
@@ -320,6 +327,7 @@ export default function App() {
     
     // Save snapshot before banking points (major game state change)
     saveGameSnapshot();
+    createSnapshot(); // Also save for turn-level undo
     
     // Record the detailed turn information
     const turnData = {
@@ -378,6 +386,7 @@ export default function App() {
     
     // Save snapshot before ending turn due to SKUNK'D (major game state change)
     saveGameSnapshot();
+    createSnapshot(); // Also save for turn-level undo
     
     // Record the detailed turn information for SKUNK'D
     const turnData = {
@@ -624,7 +633,7 @@ export default function App() {
           )}
           <br />
           <button 
-            onClick={undoLastTurn}
+            onClick={handleUndoLastTurnClick}
             disabled={turnHistory.length === 0}
             style={{ 
               marginTop: 16, 
@@ -634,13 +643,40 @@ export default function App() {
               cursor: turnHistory.length === 0 ? "not-allowed" : "pointer",
               border: "none",
               borderRadius: "8px",
-              padding: "8px 16px",
-              fontWeight: "bold"
+              padding: "12px 20px",
+              fontWeight: "bold",
+              fontSize: "1.1em",
+              transition: "all 0.3s ease"
             }}
+            title={turnHistory.length === 0 ? "No turns to undo" : "Undo the last completed turn"}
           >
-            Undo Last Turn
+            🔄 Undo Last Turn
           </button>
           <button onClick={resetGame} style={{ marginTop: 16 }}>Reset Game</button>
+          
+          {/* Confirmation Dialog for Undo Last Turn */}
+          {showUndoConfirm && (
+            <div className="confirm-dialog-overlay">
+              <div className="confirm-dialog">
+                <h3>⚠️ Confirm Undo</h3>
+                <p>Are you sure you want to undo the last turn? This action will revert the game state to before the last player's turn was completed.</p>
+                <div className="confirm-dialog-buttons">
+                  <button 
+                    className="confirm-yes"
+                    onClick={undoLastTurn}
+                  >
+                    Yes, Undo
+                  </button>
+                  <button 
+                    className="confirm-no"
+                    onClick={() => setShowUndoConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
