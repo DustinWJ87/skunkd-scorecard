@@ -32,8 +32,6 @@ export default function TurnManagerManual({
   const [notes, setNotes] = useState(notesHistory || []);
 
   const [cheatOpen, setCheatOpen] = useState(false);
-  const [notes, setNotes] = useState(notesHistory || []);
-  const [currentNote, setCurrentNote] = useState('');
 
   // Update notes in history on change
   useEffect(() => {
