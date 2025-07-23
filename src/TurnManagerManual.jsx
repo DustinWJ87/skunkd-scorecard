@@ -30,6 +30,8 @@ export default function TurnManagerManual({
   const [manualInput, setManualInput] = useState('');
 
   const [cheatOpen, setCheatOpen] = useState(false);
+  const [notes, setNotes] = useState(notesHistory || []);
+  const [currentNote, setCurrentNote] = useState('');
 
   // Update notes in history on change
   useEffect(() => {
@@ -120,7 +122,7 @@ export default function TurnManagerManual({
     fontSize: "1.1em",
     position: "absolute",
     right: "20px",
-    top: "200px"
+    top: "60px"
   };
 
   const cheatButtonStyle = {
