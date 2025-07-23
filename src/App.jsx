@@ -327,6 +327,7 @@ export default function App() {
     
     // Save snapshot before banking points (major game state change)
     saveGameSnapshot();
+    createSnapshot(); // Also save for turn-level undo
     
     // Record the detailed turn information
     const turnData = {
@@ -385,6 +386,7 @@ export default function App() {
     
     // Save snapshot before ending turn due to SKUNK'D (major game state change)
     saveGameSnapshot();
+    createSnapshot(); // Also save for turn-level undo
     
     // Record the detailed turn information for SKUNK'D
     const turnData = {
