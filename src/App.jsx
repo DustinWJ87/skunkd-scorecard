@@ -1,6 +1,7 @@
 import './app.css';
 import React, { useState } from 'react';
-import TurnManager from './TurnManager';
+import GameHistoryModal from './GameHistoryModal';
+import TurnManagerManual from './TurnManagerManual';
 
 // List of your 10 elective rules with card name and description
 const ELECTIVE_RULES = [
@@ -75,13 +76,27 @@ function getNextActivePlayerIdx(currentIdx, eliminated) {
   return nextIdx;
 }
 
+// Load from localStorage
+function loadGameHistory() {
+  try {
+    const raw = localStorage.getItem('skunkdGameHistory');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+// Save to localStorage
+function saveGameHistory(history) {
+  localStorage.setItem('skunkdGameHistory', JSON.stringify(history));
+}
+
 export default function App() {
   const [players, setPlayers] = useState([]);
   const [playerNames, setPlayerNames] = useState(['']);
   const [currentPlayerIdx, setCurrentPlayerIdx] = useState(0);
   const [scores, setScores] = useState([]);
   const [gameStarted, setGameStarted] = useState(false);
-  const [manualMode, setManualMode] = useState(false);
   const [targetScore, setTargetScore] = useState(10000);
   const [electiveRules, setElectiveRules] = useState(
     ELECTIVE_RULES.reduce((acc, rule) => {
@@ -94,6 +109,10 @@ export default function App() {
   const [leaderScore, setLeaderScore] = useState(null);
   const [eliminated, setEliminated] = useState([]);
   const [winnerIdx, setWinnerIdx] = useState(null);
+
+  const [notesHistory, setNotesHistory] = useState('');
+  const [gameHistory, setGameHistory] = useState(loadGameHistory());
+  const [showHistory, setShowHistory] = useState(false);
 
   function handleRuleChange(ruleKey) {
     setElectiveRules(rules => ({
@@ -123,15 +142,7 @@ export default function App() {
     setLeaderScore(null);
     setEliminated(filteredNames.map(() => false));
     setWinnerIdx(null);
-  }
-
-  function getNextActivePlayerIdx(currentIdx, eliminated) {
-    const n = eliminated.length;
-    let nextIdx = (currentIdx + 1) % n;
-    while (eliminated[nextIdx] && eliminated.some(e => !e)) {
-      nextIdx = (nextIdx + 1) % n;
-    }
-    return nextIdx;
+    setNotesHistory('');
   }
 
   function handleBankPoints(points) {
@@ -187,7 +198,32 @@ export default function App() {
     setLeaderScore(null);
     setEliminated([]);
     setWinnerIdx(null);
+    setNotesHistory('');
   }
+
+  // Save game to history
+  function saveCompletedGame() {
+    const newHistory = [
+      ...gameHistory,
+      {
+        players,
+        scores,
+        notes: notesHistory,
+        date: Date.now(),
+        winnerIdx
+      }
+    ];
+    setGameHistory(newHistory);
+    saveGameHistory(newHistory);
+  }
+
+  // Save to history automatically when winner
+  React.useEffect(() => {
+    if (winnerIdx !== null && players.length && scores.length) {
+      saveCompletedGame();
+    }
+    // eslint-disable-next-line
+  }, [winnerIdx]);
 
   // Get array of active rules for display
   const activeRules = ELECTIVE_RULES.filter(r => electiveRules[r.key]);
@@ -195,6 +231,23 @@ export default function App() {
   return (
     <div style={{ maxWidth: 660, margin: '0 auto', padding: 20, backgroundColor: '#111', color: '#fff' }}>
       <h1>SKUNK'D Scorecard</h1>
+      <div style={{ marginBottom: 12 }}>
+        <button
+          style={{
+            background: "#ffd700", color: "#222", borderRadius: 8,
+            padding: "8px 14px", border: "none", fontWeight: "bold",
+            cursor: "pointer", marginRight: 10
+          }}
+          onClick={() => setShowHistory(true)}
+        >
+          View Past Games
+        </button>
+      </div>
+      <GameHistoryModal
+        history={gameHistory}
+        open={showHistory}
+        onClose={() => setShowHistory(false)}
+      />
       {!gameStarted ? (
         <div>
           <h2>New Game Setup</h2>
@@ -210,15 +263,6 @@ export default function App() {
             </div>
           ))}
           <button onClick={handleAddPlayer} style={{ margin: '8px 0' }}>Add Player</button>
-          <br />
-          <label>
-            <input
-              type="checkbox"
-              checked={manualMode}
-              onChange={() => setManualMode(!manualMode)}
-            />
-            Manual Mode (enter den points)
-          </label>
           <br />
           <label>
             Target Score:{" "}
@@ -292,15 +336,20 @@ export default function App() {
             </div>
           )}
           {winnerIdx === null ? (
-            <TurnManager
-              diceRoller={num => Array.from({ length: num }, () => Math.floor(Math.random() * 6) + 1)}
-              manualMode={manualMode}
-              onScoreBoard={handleBankPoints}
-              electiveRules={electiveRules}
-              overtime={overtime}
-              leaderScore={leaderScore}
-              eliminated={eliminated[currentPlayerIdx]}
+            <TurnManagerManual
               playerName={players[currentPlayerIdx]}
+              eliminated={eliminated[currentPlayerIdx]}
+              leaderScore={leaderScore}
+              playerScore={scores[currentPlayerIdx]}
+              overtime={overtime}
+              onScoreBoard={handleBankPoints}
+              onEndTurn={() => setCurrentPlayerIdx(getNextActivePlayerIdx(currentPlayerIdx, eliminated))}
+              winnerIdx={winnerIdx}
+              scores={scores}
+              players={players}
+              onSaveGame={saveCompletedGame}
+              notesHistory={notesHistory}
+              setNotesHistory={setNotesHistory}
             />
           ) : (
             <div>
