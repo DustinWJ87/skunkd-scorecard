@@ -30,6 +30,7 @@ export default function TurnManagerManual({
   const [manualInput, setManualInput] = useState('');
   const [currentNote, setCurrentNote] = useState('');
   const [notes, setNotes] = useState(notesHistory || []);
+
   const [cheatOpen, setCheatOpen] = useState(false);
 
   // Turn-level undo for banked points (within current turn only)
@@ -109,8 +110,10 @@ export default function TurnManagerManual({
     if (onSkunkTurn) onSkunkTurn();
     setDenPoints(0);
     setTurnActions([]); // Clear turn actions when turn ends
-    setMessage('SKUNK\'D! No points banked.');
+    setMessage('SKUNK’D! No points banked.');
   }
+
+  // Removed undoLast function - now using global undo functionality
 
   // Three-column responsive layout styles
   const containerStyle = {
@@ -187,6 +190,27 @@ export default function TurnManagerManual({
     fontSize: "0.8em",
     cursor: "pointer",
     display: window.innerWidth < 768 ? "block" : "none"
+  };
+
+  const cheatButtonStyle = {
+    position: "absolute",
+    left: "18px",
+    top: "22px",
+    background: "#ffd700",
+    color: "#222",
+    borderRadius: "9px",
+    boxShadow: "0 2px 10px #0005",
+    fontWeight: "bold",
+    fontSize: "1.06em",
+    border: "none",
+    padding: "11px 18px 11px 54px",
+    cursor: "pointer",
+    outline: "none",
+    zIndex: 3,
+    backgroundImage: `url(${skunkdIcon})`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: '12px center',
+    backgroundSize: '32px'
   };
 
   // Cheat sheet modal style
@@ -387,8 +411,7 @@ export default function TurnManagerManual({
             padding: "12px",
             borderRadius: "8px",
             marginBottom: "16px",
-            border: "2px solid #ffd700",
-            animation: "fadeIn 0.5s ease"
+            border: "2px solid #ffd700"
           }}>
             <strong style={{ color: "#ffd700" }}>Turn Summary:</strong>
             <div style={{ marginTop: "8px" }}>
@@ -617,7 +640,131 @@ export default function TurnManagerManual({
           )}
         </div>
       </div>
-
+          </span>
+          {overtime && (
+            <span style={{
+              marginLeft: 8,
+              padding: "5px 5px",
+              background: "#ffc107",
+              color: "#222",
+              borderRadius: "7px",
+              fontWeight: "bold",
+              boxShadow: "0 2px 7px #2223"
+            }}>
+              Score to Beat: {leaderScore}
+              {scoreNeeded !== null &&
+                <span style={{
+                  color: "#d32f2f",
+                  marginLeft: 14,
+                  fontWeight: "bold"
+                }}>
+                  Points Needed: {scoreNeeded}
+                </span>
+              }
+            </span>
+          )}
+        </div>
+        {/* Controls */}
+        {typeof winnerIdx !== 'number' ? (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "18px",
+            flexWrap: "wrap",
+            marginBottom: "16px"
+          }}>
+            <input
+              type="number"
+              min="1"
+              max="3000"
+              value={manualInput}
+              onChange={e => setManualInput(e.target.value)}
+              placeholder="Add points"
+              style={{
+                padding: "8px 16px",
+                borderRadius: "7px",
+                fontSize: "1.1em",
+                border: "2px solid #aaa",
+                background: "#1b1b1b",
+                color: "#ffd700",
+                fontWeight: "bold",
+                width: "110px"
+              }}
+              disabled={eliminated}
+            />
+            <button
+              onClick={addPoints}
+              style={{
+                background: "#ffd700",
+                color: "#222",
+                fontWeight: "bold",
+                borderRadius: "8px",
+                boxShadow: "0 2px 8px #0003",
+                fontSize: "1.08em",
+                padding: "11px 16px",
+                border: "none",
+                cursor: "pointer"
+              }}
+              disabled={eliminated}
+            >
+              Add Points
+            </button>
+            <button
+              onClick={bankPoints}
+              style={{
+                background: "#8bc34a",
+                color: "#fff",
+                fontWeight: "bold",
+                borderRadius: "8px",
+                boxShadow: "0 2px 8px #2223",
+                fontSize: "1.08em",
+                padding: "11px 20px",
+                border: "none",
+                cursor: "pointer"
+              }}
+              disabled={eliminated}
+            >
+              Bank Points
+            </button>
+            <button
+              onClick={skunkdTurn}
+              style={{
+                background: "#222",
+                color: "#ffd700",
+                fontWeight: "bold",
+                borderRadius: "8px",
+                boxShadow: "0 2px 8px #2226",
+                fontSize: "1.08em",
+                padding: "11px 20px",
+                border: "none",
+                cursor: "pointer"
+              }}
+              disabled={eliminated}
+              title="Mark turn as SKUNK’D (no points banked)"
+            >
+              SKUNK’D
+            </button>
+          </div>
+        ) : null}
+        {/* Message/feedback */}
+        {message && (
+          <div style={{
+            margin: "18px 0 0 0",
+            padding: "9px 18px",
+            background: "#222",
+            color: "#ffd700",
+            borderRadius: "7px",
+            fontWeight: "bold",
+            fontSize: "1.15em",
+            boxShadow: "0 2px 7px #2225",
+            textShadow: "0 1px 6px #000b"
+          }}>
+            {message}
+          </div>
+        )}
+        {/* Share results section */}
+        {renderShareSection()}
+      </div>
       {/* Cheat Sheet Modal */}
       <div style={modalBgStyle}>
         {cheatOpen && (
@@ -628,6 +775,17 @@ export default function TurnManagerManual({
             <img src={stinkSheetImg} alt="STINK SHEET Cheat Sheet" style={cheatImgStyle} />
           </>
         )}
+      </div>
+      {/* Footer logo for extra fun */}
+      <div style={{
+        textAlign: "center",
+        marginTop: "34px",
+        opacity: 0.56
+      }}>
+        <img src={hoj} alt="Hooked on Johnson Logo" style={{ width: "190px", maxWidth: "80vw" }} />
+        <div style={{ fontFamily: "Caveat, cursive", fontSize: "1.23em", color: "#fffbe5", marginTop: "6px" }}>
+          Powered by <span style={{ color: "#ffd700", fontWeight: "bold" }}>SKUNK’D</span>
+        </div>
       </div>
     </div>
   );
