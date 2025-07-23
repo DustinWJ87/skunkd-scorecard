@@ -101,6 +101,67 @@ function saveGameHistory(history) {
   localStorage.setItem('skunkdGameHistory', JSON.stringify(history));
 }
 
+// Add demo data for testing (only if no history exists)
+function addDemoData() {
+  const existingHistory = loadGameHistory();
+  if (existingHistory.length === 0) {
+    const demoGame = {
+      players: ['Alice', 'Bob', 'Charlie'],
+      scores: [12450, 8900, 6500],
+      notes: [
+        { text: 'Alice got lucky with double 6s!', timestamp: Date.now() - 1000000 },
+        { text: 'Bob was skunk\'d three times', timestamp: Date.now() - 500000 },
+        { text: 'Great game everyone!', timestamp: Date.now() - 100000 }
+      ],
+      date: Date.now() - 3600000, // 1 hour ago
+      winnerIdx: 0,
+      goalScore: 10000,
+      detailedTurns: [
+        { turnNumber: 1, playerIdx: 0, playerName: 'Alice', pointsBanked: 400, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3600000 },
+        { turnNumber: 2, playerIdx: 1, playerName: 'Bob', pointsBanked: 200, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3590000 },
+        { turnNumber: 3, playerIdx: 2, playerName: 'Charlie', pointsBanked: 300, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3580000 },
+        { turnNumber: 4, playerIdx: 0, playerName: 'Alice', pointsBanked: 0, wasSkunkd: true, inOvertime: false, timestamp: Date.now() - 3570000 },
+        { turnNumber: 5, playerIdx: 1, playerName: 'Bob', pointsBanked: 0, wasSkunkd: true, inOvertime: false, timestamp: Date.now() - 3560000 },
+        { turnNumber: 6, playerIdx: 2, playerName: 'Charlie', pointsBanked: 1500, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3550000 },
+        { turnNumber: 7, playerIdx: 0, playerName: 'Alice', pointsBanked: 2800, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3540000 },
+        { turnNumber: 8, playerIdx: 1, playerName: 'Bob', pointsBanked: 1200, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3530000 },
+        { turnNumber: 9, playerIdx: 2, playerName: 'Charlie', pointsBanked: 800, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3520000 },
+        { turnNumber: 10, playerIdx: 0, playerName: 'Alice', pointsBanked: 9250, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3510000 },
+        // Overtime starts here
+        { turnNumber: 11, playerIdx: 1, playerName: 'Bob', pointsBanked: 1200, wasSkunkd: false, inOvertime: true, timestamp: Date.now() - 3500000 },
+        { turnNumber: 12, playerIdx: 2, playerName: 'Charlie', pointsBanked: 0, wasSkunkd: true, inOvertime: true, timestamp: Date.now() - 3490000 },
+        { turnNumber: 13, playerIdx: 0, playerName: 'Alice', pointsBanked: 0, wasSkunkd: true, inOvertime: true, timestamp: Date.now() - 3480000 },
+        { turnNumber: 14, playerIdx: 1, playerName: 'Bob', pointsBanked: 2300, wasSkunkd: false, inOvertime: true, timestamp: Date.now() - 3470000 },
+        { turnNumber: 15, playerIdx: 2, playerName: 'Charlie', pointsBanked: 1600, wasSkunkd: false, inOvertime: true, timestamp: Date.now() - 3460000 },
+        { turnNumber: 16, playerIdx: 0, playerName: 'Alice', pointsBanked: 0, wasSkunkd: true, inOvertime: true, timestamp: Date.now() - 3450000 },
+        { turnNumber: 17, playerIdx: 1, playerName: 'Bob', pointsBanked: 4200, wasSkunkd: false, inOvertime: true, timestamp: Date.now() - 3440000 },
+        { turnNumber: 18, playerIdx: 2, playerName: 'Charlie', pointsBanked: 2300, wasSkunkd: false, inOvertime: true, timestamp: Date.now() - 3430000 }
+      ],
+      electiveRules: {
+        countdown: false,
+        extreme: true,
+        megaPlus: false,
+        mulligan: true,
+        pungent: false,
+        sixTwoEven: false,
+        slowBoat: false,
+        stripesPlus: false,
+        stinkySuperSkunkd: false,
+        singleCinco: false
+      },
+      gameStats: {
+        totalTurns: 18,
+        overtimeTurns: 8,
+        skunkdTurns: 6
+      }
+    };
+    
+    saveGameHistory([demoGame]);
+    return [demoGame];
+  }
+  return existingHistory;
+}
+
 export default function App() {
   const [players, setPlayers] = useState([]);
   const [playerNames, setPlayerNames] = useState(['']);
@@ -121,9 +182,13 @@ export default function App() {
   const [winnerIdx, setWinnerIdx] = useState(null);
 
   const [notesHistory, setNotesHistory] = useState([]);
-  const [gameHistory, setGameHistory] = useState(loadGameHistory());
+  const [gameHistory, setGameHistory] = useState(addDemoData());
   const [showHistory, setShowHistory] = useState(false);
   const [turnHistory, setTurnHistory] = useState([]);
+  
+  // Detailed turn tracking for game history
+  const [detailedTurns, setDetailedTurns] = useState([]);
+  const [currentTurnNumber, setCurrentTurnNumber] = useState(1);
 
   // Global undo functionality - tracks snapshots of entire game state
   const [undoHistory, setUndoHistory] = useState([]);
@@ -244,11 +309,30 @@ export default function App() {
     setLeaderScore(null);
     setEliminated(filteredNames.map(() => false));
     setWinnerIdx(null);
+    
+    // Reset detailed turn tracking
+    setDetailedTurns([]);
+    setCurrentTurnNumber(1);
   }
 
   function handleBankPoints(points) {
     if (winnerIdx !== null) return;
     
+    // Save snapshot before banking points (major game state change)
+    saveGameSnapshot();
+    
+    // Record the detailed turn information
+    const turnData = {
+      turnNumber: currentTurnNumber,
+      playerIdx: currentPlayerIdx,
+      playerName: players[currentPlayerIdx],
+      pointsBanked: points,
+      wasSkunkd: false,
+      inOvertime: overtime,
+      timestamp: Date.now()
+    };
+    setDetailedTurns(prev => [...prev, turnData]);
+    setCurrentTurnNumber(prev => prev + 1);
     
     const updatedScores = [...scores];
     updatedScores[currentPlayerIdx] += points;
@@ -295,6 +379,19 @@ export default function App() {
     // Save snapshot before ending turn due to SKUNK'D (major game state change)
     saveGameSnapshot();
     
+    // Record the detailed turn information for SKUNK'D
+    const turnData = {
+      turnNumber: currentTurnNumber,
+      playerIdx: currentPlayerIdx,
+      playerName: players[currentPlayerIdx],
+      pointsBanked: 0,
+      wasSkunkd: true,
+      inOvertime: overtime,
+      timestamp: Date.now()
+    };
+    setDetailedTurns(prev => [...prev, turnData]);
+    setCurrentTurnNumber(prev => prev + 1);
+    
     // Move to next player (no points are banked when skunked)
     setCurrentPlayerIdx(getNextActivePlayerIdx(currentPlayerIdx, eliminated));
   }
@@ -326,6 +423,10 @@ export default function App() {
     setLeaderScore(null);
     setEliminated([]);
     setWinnerIdx(null);
+    
+    // Reset detailed turn tracking
+    setDetailedTurns([]);
+    setCurrentTurnNumber(1);
   }
 
   // Save game to history
@@ -337,7 +438,16 @@ export default function App() {
         scores,
         notes: notesHistory,
         date: Date.now(),
-        winnerIdx
+        winnerIdx,
+        // Enhanced data for detailed history
+        goalScore: targetScore,
+        detailedTurns,
+        electiveRules: { ...electiveRules },
+        gameStats: {
+          totalTurns: detailedTurns.length,
+          overtimeTurns: detailedTurns.filter(t => t.inOvertime).length,
+          skunkdTurns: detailedTurns.filter(t => t.wasSkunkd).length
+        }
       }
     ];
     setGameHistory(newHistory);
