@@ -486,7 +486,7 @@ export default function TurnManagerManual({
               }}
               title={denPoints === 0 ? "No points to bank" : "Bank your sequence points"}
             >
-              Bank Points
+              Put it on the Board
             </button>
             <button
               onClick={skunkdTurn}
