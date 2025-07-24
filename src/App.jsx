@@ -6,67 +6,79 @@ import TurnManagerManual from './TurnManagerManual';
 // Import logo
 import skunkdLogo from './assets/skunkd-logo.png';
 
+// Import all card images
+import countdownCard from './assets/cards/countdown.png';
+import extremeCard from './assets/cards/extreme.png';
+import megaPlusCard from './assets/cards/mega_plus.png';
+import mulliganCard from './assets/cards/mulligan.png';
+import pungentCard from './assets/cards/pungent.png';
+import sixTwoEvenCard from './assets/cards/six_two_even.png';
+import slowBoatCard from './assets/cards/slow_boat.png';
+import stripesPlusCard from './assets/cards/stripes_plus.png';
+import stinkySuperSkunkdCard from './assets/cards/stinky_super_skunkd.png';
+import singleCincoCard from './assets/cards/single_cinco.png';
+
 // List of your 10 elective rules with card name and description
 const ELECTIVE_RULES = [
   {
     key: "countdown",
     label: "Countdown",
     description: "Before rolling for the last time, a player must announce “Countdown”. They must then roll a 6, 5, 4, 3, 2, (skunk’d) in consecutive rolls, keeping one die per roll. If successful that player instantly WINS the game!",
-    img: "/cards/countdown.png"
+    img: countdownCard
   },
   {
     key: "extreme",
     label: "Extreme",
     description: "All players on their turn may continue rolling until they have SKUNK’D, and still move all points from their den onto the board! No min. to get on the board!",
-    img: "/cards/extreme.png"
+    img: extremeCard
   },
   {
     key: "megaPlus",
     label: "Mega+",
     description: "Mega rules apply to 5‘s and (skunk’d)‘s (in addition to 2’s, 3’s, 4’s, & 6’s). Additional 5‘s are worth 500 and additional (skunk’d)‘s are worth 1,000. Mega doubling also applies.",
-    img: "/cards/mega_plus.png"
+    img: megaPlusCard
   },
   {
     key: "mulligan",
     label: "Mulligan",
     description: "A player may proclaim Mulligan to get a do-over! Each player may claim one Mulligan per game. The Mulligan can be called anytime.",
-    img: "/cards/mulligan.png"
+    img: mulliganCard
   },
   {
     key: "pungent",
     label: "Pungent",
     description: "A Scent-sational score of 2,000+ is worth double! An Odorific score of 5,000+ is worth triple!",
-    img: "/cards/pungent.png"
+    img: pungentCard
   },
   {
     key: "sixTwoEven",
     label: "Six, Two, & Even",
     description: "On any given roll a player may change any 6’s to 2’s or any 2’s to 6’s. Each player may use this rule once per game.",
-    img: "/cards/six_two_even.png"
+    img: sixTwoEvenCard
   },
   {
     key: "slowBoat",
     label: "Slow Boat",
     description: "When a player rolls six (skunk’d)‘s or 5’s, one at a time, they receive 5 times the value of the six dice. Ex. Four 5’s and Two (skunk’d)‘s = 400 pts. times 5 for a total of 2,000 pts.!",
-    img: "/cards/slow_boat.png"
+    img: slowBoatCard
   },
   {
     key: "stripesPlus",
     label: "Stripes+",
     description: "When a player rolls Stripes (3 pairs) that are numerically consecutive, such as 3’s, 4’s, & 5’s, they get 3,000 points instead of 1,000!",
-    img: "/cards/stripes_plus.png"
+    img: stripesPlusCard
   },
   {
     key: "stinkySuperSkunkd",
     label: "Stinky Super SKUNK’D",
     description: "When a player has Super SKUNK’D (rolled 6 dice with none scoring) the player’s score on the board resets to ZERO!",
-    img: "/cards/stinky_super_skunkd.png"
+    img: stinkySuperSkunkdCard
   },
   {
     key: "singleCinco",
     label: "Single Cinco",
     description: "When a player rolls six 5’s, one at a time, they receive a score of 3,000 points!",
-    img: "/cards/single_cinco.png"
+    img: singleCincoCard
   }
 ];
 
