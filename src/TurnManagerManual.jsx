@@ -298,7 +298,7 @@ export default function TurnManagerManual({
   return (
     <div style={containerStyle}>
       {/* Skunk icon in top right corner */}
-      <img src={skunkdIcon} alt="SKUNK'D Mascot" style={iconStyle} />
+      {/* <img src={skunkdIcon} alt="SKUNK'D Mascot" style={iconStyle} /> */}
       
       {/* Left Column - Logo */}
       <div style={leftColumnStyle}>
@@ -420,7 +420,7 @@ export default function TurnManagerManual({
               max="3000"
               value={manualInput}
               onChange={e => setManualInput(e.target.value)}
-              placeholder="Add points"
+              placeholder="Add Points"
               style={{
                 padding: "8px 16px",
                 borderRadius: "7px",
@@ -448,7 +448,7 @@ export default function TurnManagerManual({
               }}
               disabled={eliminated}
             >
-              Add Points
+              Add to Den
             </button>
             <button
               onClick={undoBankedAction}
@@ -486,7 +486,7 @@ export default function TurnManagerManual({
               }}
               title={denPoints === 0 ? "No points to bank" : "Bank your sequence points"}
             >
-              Put it on the Board
+              ✒️ Put it on the Board
             </button>
             <button
               onClick={skunkdTurn}
@@ -504,7 +504,7 @@ export default function TurnManagerManual({
               disabled={eliminated}
               title="Mark turn as SKUNK'D (no points banked)"
             >
-              SKUNK'D
+              😶‍🌫️ SKUNK'D
             </button>
           </div>
         ) : null}

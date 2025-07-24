@@ -124,7 +124,7 @@ function addDemoData() {
       players: ['Alice', 'Bob', 'Charlie'],
       scores: [12450, 8900, 6500],
       notes: [
-        { text: 'Alice got lucky with double 6s!', timestamp: Date.now() - 1000000 },
+        { text: 'Alice got lucky with a double mega!', timestamp: Date.now() - 1000000 },
         { text: 'Bob was skunk\'d three times', timestamp: Date.now() - 500000 },
         { text: 'Great game everyone!', timestamp: Date.now() - 100000 }
       ],
