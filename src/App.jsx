@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import GameHistoryModal from './GameHistoryModal';
 import TurnManagerManual from './TurnManagerManual';
 
+// Import logo
+import skunkdLogo from './assets/skunkd-logo.png';
+
 // List of your 10 elective rules with card name and description
 const ELECTIVE_RULES = [
   {
@@ -320,6 +323,9 @@ export default function App() {
     // Reset detailed turn tracking
     setDetailedTurns([]);
     setCurrentTurnNumber(1);
+    
+    // Reset notes for fresh start
+    setNotesHistory([]);
   }
 
   function handleBankPoints(points) {
@@ -366,7 +372,16 @@ export default function App() {
         setEliminated(newElim);
         const active = newElim.filter(e => !e);
         if (active.length === 1) {
-          setWinnerIdx(newElim.findIndex(e => !e));
+          // Find the winner by highest score among non-eliminated players
+          let winnerIndex = -1;
+          let highestScore = -1;
+          for (let i = 0; i < updatedScores.length; i++) {
+            if (!newElim[i] && updatedScores[i] > highestScore) {
+              highestScore = updatedScores[i];
+              winnerIndex = i;
+            }
+          }
+          setWinnerIdx(winnerIndex);
         }
       }
       setScores(updatedScores);
@@ -400,6 +415,31 @@ export default function App() {
     };
     setDetailedTurns(prev => [...prev, turnData]);
     setCurrentTurnNumber(prev => prev + 1);
+    
+    // In overtime, getting SKUNK'D means elimination (since you scored 0, you can't beat the leader)
+    if (overtime) {
+      if (!eliminated[currentPlayerIdx]) {
+        const newElim = [...eliminated];
+        newElim[currentPlayerIdx] = true;
+        setEliminated(newElim);
+        
+        // Check if only one player remains active
+        const active = newElim.filter(e => !e);
+        if (active.length === 1) {
+          // Find the winner by highest score among non-eliminated players
+          let winnerIndex = -1;
+          let highestScore = -1;
+          for (let i = 0; i < scores.length; i++) {
+            if (!newElim[i] && scores[i] > highestScore) {
+              highestScore = scores[i];
+              winnerIndex = i;
+            }
+          }
+          setWinnerIdx(winnerIndex);
+          return; // Game is over, don't advance to next player
+        }
+      }
+    }
     
     // Move to next player (no points are banked when skunked)
     setCurrentPlayerIdx(getNextActivePlayerIdx(currentPlayerIdx, eliminated));
@@ -436,6 +476,9 @@ export default function App() {
     // Reset detailed turn tracking
     setDetailedTurns([]);
     setCurrentTurnNumber(1);
+    
+    // Reset notes for fresh start
+    setNotesHistory([]);
   }
 
   // Save game to history
@@ -476,7 +519,23 @@ export default function App() {
 
   return (
     <div style={{ maxWidth: 660, margin: '0 auto', padding: 20, backgroundColor: '#111', color: '#fff' }}>
-      <h1>SKUNK'D Scorecard</h1>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        marginBottom: 20 
+      }}>
+        <h1 style={{ margin: 0 }}>SKUNK'D Scorecard</h1>
+        <img 
+          src={skunkdLogo} 
+          alt="SKUNK'D Logo" 
+          style={{ 
+            height: '90px',
+            maxWidth: '300px',
+            objectFit: 'contain'
+          }} 
+        />
+      </div>
       <div style={{ marginBottom: 12 }}>
         <button
           style={{
@@ -583,28 +642,6 @@ export default function App() {
           )}
           {winnerIdx === null ? (
             <>
-              {/* Global Undo Button - Always available when there's history */}
-              {undoHistory.length > 0 && (
-                <div style={{ marginBottom: 16, textAlign: 'center' }}>
-                  <button
-                    onClick={handleGlobalUndo}
-                    style={{
-                      background: "#ff6b35",
-                      color: "#fff",
-                      fontWeight: "bold",
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 8px #0003",
-                      fontSize: "1.1em",
-                      padding: "12px 24px",
-                      border: "none",
-                      cursor: "pointer"
-                    }}
-                    title="Undo last major action (works across turns)"
-                  >
-                    🔄 Global Undo ({undoHistory.length})
-                  </button>
-                </div>
-              )}
               <TurnManagerManual
                 playerName={players[currentPlayerIdx]}
                 eliminated={eliminated[currentPlayerIdx]}

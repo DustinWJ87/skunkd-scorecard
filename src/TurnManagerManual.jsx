@@ -20,9 +20,7 @@ export default function TurnManagerManual({
   players,
   onSaveGame,
   notesHistory,
-  onNotesChange,
-  globalUndoAvailable,
-  onGlobalUndo
+  onNotesChange
 }) {
   // State
   const [denPoints, setDenPoints] = useState(0);
@@ -354,7 +352,7 @@ export default function TurnManagerManual({
             boxShadow: "0 2px 8px #2224",
             marginRight: 12
           }}>
-            Sequence Points: {denPoints}
+            Den Points: {denPoints}
           </span>
           {overtime && (
             <span style={{
@@ -473,18 +471,20 @@ export default function TurnManagerManual({
             </button>
             <button
               onClick={bankPoints}
+              disabled={eliminated || denPoints === 0}
               style={{
-                background: "#8bc34a",
-                color: "#fff",
+                background: (eliminated || denPoints === 0) ? "#444" : "#8bc34a",
+                color: (eliminated || denPoints === 0) ? "#888" : "#fff",
                 fontWeight: "bold",
                 borderRadius: "8px",
                 boxShadow: "0 2px 8px #2223",
                 fontSize: "1.08em",
                 padding: "11px 20px",
                 border: "none",
-                cursor: "pointer"
+                cursor: (eliminated || denPoints === 0) ? "not-allowed" : "pointer",
+                transition: "all 0.3s ease"
               }}
-              disabled={eliminated}
+              title={denPoints === 0 ? "No points to bank" : "Bank your sequence points"}
             >
               Bank Points
             </button>
