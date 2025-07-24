@@ -24,7 +24,7 @@ const ELECTIVE_RULES = [
     key: "megaPlus",
     label: "Mega+",
     description: "Mega rules apply to 5‘s and (skunk’d)‘s (in addition to 2’s, 3’s, 4’s, & 6’s). Additional 5‘s are worth 500 and additional (skunk’d)‘s are worth 1,000. Mega doubling also applies.",
-    img: "/cards/mega_Plus.png"
+    img: "/cards/mega_plus.png"
   },
   {
     key: "mulligan",
@@ -42,31 +42,31 @@ const ELECTIVE_RULES = [
     key: "sixTwoEven",
     label: "Six, Two, & Even",
     description: "On any given roll a player may change any 6’s to 2’s or any 2’s to 6’s. Each player may use this rule once per game.",
-    img: "/cards/six_Two_Even.png"
+    img: "/cards/six_two_even.png"
   },
   {
     key: "slowBoat",
     label: "Slow Boat",
     description: "When a player rolls six (skunk’d)‘s or 5’s, one at a time, they receive 5 times the value of the six dice. Ex. Four 5’s and Two (skunk’d)‘s = 400 pts. times 5 for a total of 2,000 pts.!",
-    img: "/cards/slow_Boat.png"
+    img: "/cards/slow_boat.png"
   },
   {
     key: "stripesPlus",
     label: "Stripes+",
     description: "When a player rolls Stripes (3 pairs) that are numerically consecutive, such as 3’s, 4’s, & 5’s, they get 3,000 points instead of 1,000!",
-    img: "/cards/stripes_Plus.png"
+    img: "/cards/stripes_plus.png"
   },
   {
     key: "stinkySuperSkunkd",
     label: "Stinky Super SKUNK’D",
     description: "When a player has Super SKUNK’D (rolled 6 dice with none scoring) the player’s score on the board resets to ZERO!",
-    img: "/cards/stinky_Super_Skunkd.png"
+    img: "/cards/stinky_super_skunkd.png"
   },
   {
     key: "singleCinco",
     label: "Single Cinco",
     description: "When a player rolls six 5’s, one at a time, they receive a score of 3,000 points!",
-    img: "/cards/single_Cinco.png"
+    img: "/cards/single_cinco.png"
   }
 ];
 
