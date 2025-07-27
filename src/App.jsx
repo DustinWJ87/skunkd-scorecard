@@ -559,6 +559,24 @@ export default function App() {
         >
           View Past Games
         </button>
+        <button
+          style={{
+            background: "#4a90e2", color: "#fff", borderRadius: 8,
+            padding: "8px 14px", border: "none", fontWeight: "bold",
+            cursor: "pointer"
+          }}
+          onClick={() => {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen().catch(err => {
+                console.log('Error attempting to enable fullscreen:', err);
+              });
+            } else {
+              document.exitFullscreen();
+            }
+          }}
+        >
+          🔳 Fullscreen
+        </button>
       </div>
       <GameHistoryModal
         history={gameHistory}
@@ -625,7 +643,8 @@ export default function App() {
                   : eliminated[idx] ? "#888"
                   : leaderIdx === idx && overtime ? "#00ffea"
                   : "#fff",
-                fontWeight: winnerIdx === idx ? "bold" : leaderIdx === idx ? "bold" : "normal"
+                fontWeight: winnerIdx === idx ? "bold" : leaderIdx === idx ? "bold" : "normal",
+                fontSize: "18px"
               }}>
                 {name}: {scores[idx]}
                 {idx === currentPlayerIdx && ' ← Current'}

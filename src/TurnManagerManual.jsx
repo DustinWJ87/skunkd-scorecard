@@ -471,20 +471,24 @@ export default function TurnManagerManual({
             </button>
             <button
               onClick={bankPoints}
-              disabled={eliminated || denPoints === 0}
+              disabled={eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '')}
               style={{
-                background: (eliminated || denPoints === 0) ? "#444" : "#8bc34a",
-                color: (eliminated || denPoints === 0) ? "#888" : "#fff",
+                background: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '')) ? "#444" : "#8bc34a",
+                color: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '')) ? "#888" : "#fff",
                 fontWeight: "bold",
                 borderRadius: "8px",
                 boxShadow: "0 2px 8px #2223",
                 fontSize: "1.08em",
                 padding: "11px 20px",
                 border: "none",
-                cursor: (eliminated || denPoints === 0) ? "not-allowed" : "pointer",
+                cursor: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '')) ? "not-allowed" : "pointer",
                 transition: "all 0.3s ease"
               }}
-              title={denPoints === 0 ? "No points to bank" : "Bank your sequence points"}
+              title={
+                denPoints === 0 ? "No points to bank" :
+                (manualInput && manualInput.trim() !== '') ? "Add points to den first" :
+                "Bank your sequence points"
+              }
             >
               ✒️ Put it on the Board
             </button>
