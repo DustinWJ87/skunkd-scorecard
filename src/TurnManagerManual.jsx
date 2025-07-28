@@ -248,13 +248,33 @@ export default function TurnManagerManual({
               padding: "10px 18px", border: "none", fontWeight: "bold",
               marginRight: 10, cursor: "pointer"
             }}
-            onClick={() => {
+            onClick={async () => {
+              console.log('Share button clicked, isInIframe:', isInIframe);
+              console.log('ShareText:', shareText);
+              
               try {
                 if (navigator.share && !isInIframe) {
                   // Only use native share if not in iframe
-                  navigator.share({ title: "SKUNK'D Results", text: shareText });
+                  console.log('Attempting navigator.share...');
+                  await navigator.share({ title: "SKUNK'D Results", text: shareText });
+                  console.log('Navigator.share completed successfully');
                 } else {
                   // Fallback for iframe context or browsers without Web Share API
+                  console.log('Using clipboard fallback method...');
+                  
+                  // Try modern clipboard API first
+                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                    try {
+                      await navigator.clipboard.writeText(shareText);
+                      alert('Results copied to clipboard!');
+                      console.log('Clipboard API success');
+                      return;
+                    } catch (clipboardErr) {
+                      console.log('Clipboard API failed, trying execCommand fallback:', clipboardErr);
+                    }
+                  }
+                  
+                  // Fallback to execCommand
                   const textArea = document.createElement('textarea');
                   textArea.value = shareText;
                   textArea.style.position = 'fixed';
@@ -265,26 +285,26 @@ export default function TurnManagerManual({
                   textArea.select();
                   
                   try {
-                    document.execCommand('copy');
-                    alert('Results copied to clipboard!');
-                  } catch (err) {
-                    // If execCommand fails, try the modern Clipboard API
-                    if (navigator.clipboard) {
-                      navigator.clipboard.writeText(shareText).then(() => {
-                        alert('Results copied to clipboard!');
-                      }).catch(() => {
-                        alert('Please manually copy the text from the box above.');
-                      });
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    if (successful) {
+                      alert('Results copied to clipboard!');
+                      console.log('execCommand copy successful');
                     } else {
-                      alert('Please manually copy the text from the box above.');
+                      throw new Error('execCommand returned false');
                     }
+                  } catch (execErr) {
+                    document.body.removeChild(textArea);
+                    console.log('execCommand failed:', execErr);
+                    console.log('Text to copy:', shareText);
+                    alert('Copy failed. The text has been logged to the console - please copy it manually from there.');
                   }
-                  
-                  document.body.removeChild(textArea);
                 }
               } catch (err) {
-                console.log('Share/copy failed:', err);
-                alert('Please manually copy the text from the box above.');
+                console.error('Share/copy operation failed:', err);
+                console.log('Text to copy:', shareText);
+                alert('Share failed. The text has been logged to the console - please copy it manually from there.');
               }
             }}
           >
@@ -296,43 +316,52 @@ export default function TurnManagerManual({
               padding: "10px 18px", border: "none", fontWeight: "bold",
               cursor: "pointer"
             }}
-            onClick={() => {
+            onClick={async () => {
+              console.log('Copy button clicked');
+              console.log('Text to copy:', shareText);
+              
               try {
-                // Always try to copy to clipboard
-                if (navigator.clipboard && !isInIframe) {
-                  navigator.clipboard.writeText(shareText).then(() => {
+                // Try modern clipboard API first
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  try {
+                    await navigator.clipboard.writeText(shareText);
                     alert('Results copied to clipboard!');
-                  }).catch(() => {
-                    // Fallback to execCommand
-                    const textArea = document.createElement('textarea');
-                    textArea.value = shareText;
-                    textArea.style.position = 'fixed';
-                    textArea.style.left = '-999999px';
-                    textArea.style.top = '-999999px';
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                    alert('Results copied to clipboard!');
-                  });
-                } else {
-                  // Fallback for iframe or older browsers
-                  const textArea = document.createElement('textarea');
-                  textArea.value = shareText;
-                  textArea.style.position = 'fixed';
-                  textArea.style.left = '-999999px';
-                  textArea.style.top = '-999999px';
-                  document.body.appendChild(textArea);
-                  textArea.focus();
-                  textArea.select();
-                  document.execCommand('copy');
+                    console.log('Clipboard API copy successful');
+                    return;
+                  } catch (clipboardErr) {
+                    console.log('Clipboard API failed, trying execCommand fallback:', clipboardErr);
+                  }
+                }
+                
+                // Fallback to execCommand
+                const textArea = document.createElement('textarea');
+                textArea.value = shareText;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                  const successful = document.execCommand('copy');
                   document.body.removeChild(textArea);
-                  alert('Results copied to clipboard!');
+                  
+                  if (successful) {
+                    alert('Results copied to clipboard!');
+                    console.log('execCommand copy successful');
+                  } else {
+                    throw new Error('execCommand returned false');
+                  }
+                } catch (execErr) {
+                  document.body.removeChild(textArea);
+                  console.log('execCommand failed:', execErr);
+                  throw execErr;
                 }
               } catch (err) {
-                console.log('Copy failed:', err);
-                alert('Please manually copy the text from the box above.');
+                console.error('Copy operation failed:', err);
+                console.log('Text to copy:', shareText);
+                alert('Copy failed. The text has been logged to the console - please copy it manually from there.');
               }
             }}
           >
@@ -347,28 +376,53 @@ export default function TurnManagerManual({
               }}
               onClick={() => {
                 console.log('Expand button clicked, isInIframe:', isInIframe);
-                // Try to communicate with parent window to expand iframe
+                
+                // Option A: Always open in new window (most reliable)
+                if (confirm('Open the app in a new window for fullscreen experience?')) {
+                  const newWindow = window.open(
+                    window.location.href, 
+                    'skunkd_fullscreen',
+                    'width=1200,height=900,scrollbars=yes,resizable=yes'
+                  );
+                  
+                  if (newWindow) {
+                    newWindow.focus();
+                    console.log('New window opened successfully');
+                  } else {
+                    alert('Popup blocked. Please allow popups for this site and try again.');
+                  }
+                }
+                
+                // Option B: Try iframe expansion first, fallback to new window
                 try {
                   console.log('Sending postMessage to parent...');
-                  // Send message to parent to expand the iframe
                   window.parent.postMessage({
                     type: 'expandApp',
-                    action: 'requestFullscreen'
+                    action: 'requestFullscreen',
+                    timestamp: Date.now(),
+                    url: window.location.href
                   }, '*');
                   console.log('PostMessage sent successfully');
                   
-                  // Show user feedback that the request was sent
-                  alert('Expand request sent! If nothing happens, the parent site may not have the listener code installed.');
+                  // Give time for parent to respond, then offer new window
+                  setTimeout(() => {
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                      if (confirm('Expand within page didn\'t work. Open in new window instead?')) {
+                        window.open(window.location.href, '_blank', 'width=1200,height=900');
+                      }
+                    }
+                  }, 1500);
+                  
                 } catch (e) {
                   console.error('PostMessage failed:', e);
-                  // Fallback: open in new window if parent communication fails
-                  if (confirm('Could not expand within the current page. Would you like to open in a new window instead?')) {
-                    window.open(window.location.href, '_blank');
+                  if (confirm('Could not expand. Open in new window instead?')) {
+                    window.open(window.location.href, '_blank', 'width=1200,height=900');
                   }
                 }
+                
               }}
             >
-              🔍 Expand App
+              � Open Full App
             </button>
           )}
         </div>
