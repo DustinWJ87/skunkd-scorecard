@@ -679,7 +679,7 @@ export default function App() {
         >
           {window !== window.parent ? "🚀 Open Full App" : "🔳 Fullscreen"}
         </button>
-        {(window !== window.parent || window.opener) && (
+        {window.opener && (
           <button
             style={{
               background: "#dc3545", color: "#fff", borderRadius: 8,
