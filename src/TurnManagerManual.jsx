@@ -110,53 +110,31 @@ export default function TurnManagerManual({
     setMessage('SKUNK\'D! No points banked.');
   }
 
-  // Three-column responsive layout styles
+  // Two-column responsive layout styles (more mobile-friendly)
   const containerStyle = {
     background: 'linear-gradient(135deg, #111 70%, #1e1e1e 100%)',
-    borderRadius: '28px',
+    borderRadius: '20px',
     boxShadow: '0 6px 32px #0006',
-    padding: '32px 18px 28px 18px',
-    maxWidth: '1200px', // Increased for three-column layout
-    margin: '32px auto',
+    padding: '20px 16px',
+    maxWidth: '900px', // Reduced from 1200px
+    margin: '20px auto',
     position: 'relative',
     color: '#fff',
     fontFamily: 'Quicksand, Nunito, Arial, sans-serif',
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '20px'
+    gap: '16px'
   };
 
   const leftColumnStyle = {
-    flex: '1 1 300px',
-    minWidth: '250px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  };
-
-  const centerColumnStyle = {
-    flex: '1 1 350px',
+    flex: '1 1 320px', // Main content column
     minWidth: '300px'
   };
 
   const rightColumnStyle = {
-    flex: '1 1 300px',
+    flex: '1 1 280px', // Notes column
     minWidth: '250px',
     position: 'relative'
-  };
-
-  const logoStyle = {
-    width: "280px",
-    maxWidth: "100%"
-  };
-
-  const iconStyle = {
-    width: "120px", // Increased size for better visibility
-    position: "absolute",
-    right: "22px",
-    top: "22px",
-    filter: "drop-shadow(0 0 8px #0008)",
-    zIndex: 10
   };
 
   const notesAreaStyle = {
@@ -164,11 +142,11 @@ export default function TurnManagerManual({
     color: "#333",
     borderRadius: "12px",
     boxShadow: "2px 4px 10px #0004",
-    padding: "16px",
+    padding: "12px",
     width: "100%",
-    minHeight: isNotesCollapsed ? "60px" : "300px",
+    minHeight: isNotesCollapsed ? "50px" : "250px", // Reduced heights
     fontFamily: "Caveat, Comic Sans MS, cursive",
-    fontSize: "1.1em",
+    fontSize: "1.0em", // Slightly smaller
     position: "relative",
     transition: "min-height 0.3s ease"
   };
@@ -234,6 +212,10 @@ export default function TurnManagerManual({
       ...players.map((p, i) => `${p}: ${scores[i]}${winnerIdx === i ? " 👑 Winner!" : ""}`),
       `Notes:\n${notesText}`
     ].join('\n');
+    
+    // Detect if we're in an iframe
+    const isInIframe = window !== window.parent;
+    
     return (
       <div style={{
         margin: "28px 0 0 0",
@@ -267,15 +249,46 @@ export default function TurnManagerManual({
               marginRight: 10, cursor: "pointer"
             }}
             onClick={() => {
-              if (navigator.share) {
-                navigator.share({ title: "SKUNK'D Results", text: shareText });
-              } else {
-                navigator.clipboard.writeText(shareText);
-                alert('Results copied to clipboard!');
+              try {
+                if (navigator.share && !isInIframe) {
+                  // Only use native share if not in iframe
+                  navigator.share({ title: "SKUNK'D Results", text: shareText });
+                } else {
+                  // Fallback for iframe context or browsers without Web Share API
+                  const textArea = document.createElement('textarea');
+                  textArea.value = shareText;
+                  textArea.style.position = 'fixed';
+                  textArea.style.left = '-999999px';
+                  textArea.style.top = '-999999px';
+                  document.body.appendChild(textArea);
+                  textArea.focus();
+                  textArea.select();
+                  
+                  try {
+                    document.execCommand('copy');
+                    alert('Results copied to clipboard!');
+                  } catch (err) {
+                    // If execCommand fails, try the modern Clipboard API
+                    if (navigator.clipboard) {
+                      navigator.clipboard.writeText(shareText).then(() => {
+                        alert('Results copied to clipboard!');
+                      }).catch(() => {
+                        alert('Please manually copy the text from the box above.');
+                      });
+                    } else {
+                      alert('Please manually copy the text from the box above.');
+                    }
+                  }
+                  
+                  document.body.removeChild(textArea);
+                }
+              } catch (err) {
+                console.log('Share/copy failed:', err);
+                alert('Please manually copy the text from the box above.');
               }
             }}
           >
-            {navigator.share ? "Share" : "Copy"}
+            {navigator.share && !isInIframe ? "Share" : "Copy"}
           </button>
           <button
             style={{
@@ -284,12 +297,61 @@ export default function TurnManagerManual({
               cursor: "pointer"
             }}
             onClick={() => {
-              navigator.clipboard.writeText(shareText);
-              alert('Results copied to clipboard!');
+              try {
+                // Always try to copy to clipboard
+                if (navigator.clipboard && !isInIframe) {
+                  navigator.clipboard.writeText(shareText).then(() => {
+                    alert('Results copied to clipboard!');
+                  }).catch(() => {
+                    // Fallback to execCommand
+                    const textArea = document.createElement('textarea');
+                    textArea.value = shareText;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('Results copied to clipboard!');
+                  });
+                } else {
+                  // Fallback for iframe or older browsers
+                  const textArea = document.createElement('textarea');
+                  textArea.value = shareText;
+                  textArea.style.position = 'fixed';
+                  textArea.style.left = '-999999px';
+                  textArea.style.top = '-999999px';
+                  document.body.appendChild(textArea);
+                  textArea.focus();
+                  textArea.select();
+                  document.execCommand('copy');
+                  document.body.removeChild(textArea);
+                  alert('Results copied to clipboard!');
+                }
+              } catch (err) {
+                console.log('Copy failed:', err);
+                alert('Please manually copy the text from the box above.');
+              }
             }}
           >
             Copy
           </button>
+          {isInIframe && (
+            <button
+              style={{
+                background: "#2196F3", color: "#fff", borderRadius: 8,
+                padding: "10px 18px", border: "none", fontWeight: "bold",
+                cursor: "pointer", marginLeft: 10
+              }}
+              onClick={() => {
+                window.open(window.location.href, '_blank');
+              }}
+            >
+              Open Full App
+            </button>
+          )}
         </div>
       </div>
     );
@@ -297,16 +359,8 @@ export default function TurnManagerManual({
 
   return (
     <div style={containerStyle}>
-      {/* Skunk icon in top right corner */}
-      {/* <img src={skunkdIcon} alt="SKUNK'D Mascot" style={iconStyle} /> */}
-      
-      {/* Left Column - Logo */}
+      {/* Left Column - Game Controls */}
       <div style={leftColumnStyle}>
-        <img src={skunkdLogo} alt="SKUNK'D Logo" style={logoStyle} />
-      </div>
-
-      {/* Center Column - Game Controls */}
-      <div style={centerColumnStyle}>
         {/* Cheat Sheet Toggle Button */}
         <button
           style={{
@@ -410,9 +464,9 @@ export default function TurnManagerManual({
           <div style={{
             display: "flex",
             alignItems: "center",
-            gap: "18px",
+            gap: "12px", // Reduced gap
             flexWrap: "wrap",
-            marginBottom: "16px"
+            marginBottom: "12px" // Reduced margin
           }}>
             <input
               type="number"
@@ -422,14 +476,14 @@ export default function TurnManagerManual({
               onChange={e => setManualInput(e.target.value)}
               placeholder="Add Points"
               style={{
-                padding: "8px 16px",
-                borderRadius: "7px",
-                fontSize: "1.1em",
+                padding: "6px 12px", // Reduced padding
+                borderRadius: "6px",
+                fontSize: "1.0em", // Reduced font size
                 border: "2px solid #aaa",
                 background: "#1b1b1b",
                 color: "#ffd700",
                 fontWeight: "bold",
-                width: "110px"
+                width: "100px" // Reduced width
               }}
               disabled={eliminated}
             />
@@ -439,10 +493,10 @@ export default function TurnManagerManual({
                 background: "#ffd700",
                 color: "#222",
                 fontWeight: "bold",
-                borderRadius: "8px",
-                boxShadow: "0 2px 8px #0003",
-                fontSize: "1.08em",
-                padding: "11px 16px",
+                borderRadius: "6px",
+                boxShadow: "0 2px 6px #0003",
+                fontSize: "1.0em",
+                padding: "8px 12px", // Reduced padding
                 border: "none",
                 cursor: "pointer"
               }}
@@ -457,10 +511,10 @@ export default function TurnManagerManual({
                 background: turnActions.length === 0 ? "#444" : "#ff6b35",
                 color: turnActions.length === 0 ? "#888" : "#fff",
                 fontWeight: "bold",
-                borderRadius: "8px",
-                boxShadow: "0 2px 8px #0003",
-                fontSize: "1.08em",
-                padding: "11px 16px",
+                borderRadius: "6px",
+                boxShadow: "0 2px 6px #0003",
+                fontSize: "1.0em",
+                padding: "8px 12px", // Reduced padding
                 border: "none",
                 cursor: turnActions.length === 0 || eliminated ? "not-allowed" : "pointer",
                 transition: "all 0.3s ease"
@@ -476,10 +530,10 @@ export default function TurnManagerManual({
                 background: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '')) ? "#444" : "#8bc34a",
                 color: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '')) ? "#888" : "#fff",
                 fontWeight: "bold",
-                borderRadius: "8px",
-                boxShadow: "0 2px 8px #2223",
-                fontSize: "1.08em",
-                padding: "11px 20px",
+                borderRadius: "6px",
+                boxShadow: "0 2px 6px #2223",
+                fontSize: "1.0em",
+                padding: "8px 14px", // Reduced padding
                 border: "none",
                 cursor: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '')) ? "not-allowed" : "pointer",
                 transition: "all 0.3s ease"
@@ -498,10 +552,10 @@ export default function TurnManagerManual({
                 background: "#222",
                 color: "#ffd700",
                 fontWeight: "bold",
-                borderRadius: "8px",
-                boxShadow: "0 2px 8px #2226",
-                fontSize: "1.08em",
-                padding: "11px 20px",
+                borderRadius: "6px",
+                boxShadow: "0 2px 6px #2226",
+                fontSize: "1.0em",
+                padding: "8px 14px", // Reduced padding
                 border: "none",
                 cursor: "pointer"
               }}
@@ -534,14 +588,14 @@ export default function TurnManagerManual({
         {/* Share results section */}
         {renderShareSection()}
 
-        {/* Footer logo for extra fun */}
+        {/* Compact footer logo */}
         <div style={{
           textAlign: "center",
-          marginTop: "34px",
-          opacity: 0.56
+          marginTop: "20px",
+          opacity: 0.4
         }}>
-          <img src={hoj} alt="Hooked on Johnson Logo" style={{ width: "190px", maxWidth: "80vw" }} />
-          <div style={{ fontFamily: "Caveat, cursive", fontSize: "1.23em", color: "#fffbe5", marginTop: "6px" }}>
+          <img src={hoj} alt="Hooked on Johnson Logo" style={{ width: "120px", maxWidth: "60vw" }} />
+          <div style={{ fontFamily: "Caveat, cursive", fontSize: "0.9em", color: "#fffbe5", marginTop: "4px" }}>
             Powered by <span style={{ color: "#ffd700", fontWeight: "bold" }}>SKUNK'D</span>
           </div>
         </div>

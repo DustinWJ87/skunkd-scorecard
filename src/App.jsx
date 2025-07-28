@@ -1,5 +1,5 @@
 import './app.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import GameHistoryModal from './GameHistoryModal';
 import TurnManagerManual from './TurnManagerManual';
 
@@ -201,6 +201,7 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [turnHistory, setTurnHistory] = useState([]);
   const [showUndoConfirm, setShowUndoConfirm] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   
   // Detailed turn tracking for game history
   const [detailedTurns, setDetailedTurns] = useState([]);
@@ -208,6 +209,73 @@ export default function App() {
 
   // Global undo functionality - tracks snapshots of entire game state
   const [undoHistory, setUndoHistory] = useState([]);
+  
+  // State for tracking if game was restored from save
+  const [hasSavedGame, setHasSavedGame] = useState(false);
+
+  // Load saved game state on app start
+  useEffect(() => {
+    const savedGameState = localStorage.getItem('skunkd-game-state');
+    if (savedGameState) {
+      try {
+        const gameState = JSON.parse(savedGameState);
+        setHasSavedGame(true);
+        
+        // Restore all the game state
+        setGameStarted(gameState.gameStarted || false);
+        setPlayers(gameState.players || []);
+        setScores(gameState.scores || []);
+        setCurrentPlayerIdx(gameState.currentPlayerIdx || 0);
+        setEliminated(gameState.eliminated || []);
+        setTargetScore(gameState.targetScore || 10000);
+        setElectiveRules(gameState.electiveRules || ELECTIVE_RULES.reduce((acc, rule) => {
+          acc[rule.key] = false;
+          return acc;
+        }, {}));
+        setWinnerIdx(gameState.winnerIdx || null);
+        setOvertime(gameState.overtime || false);
+        setLeaderIdx(gameState.leaderIdx || null);
+        setLeaderScore(gameState.leaderScore || null);
+        setTurnHistory(gameState.turnHistory || []);
+        setNotesHistory(gameState.notesHistory || []);
+        setPlayerNames(gameState.playerNames || ['', '', '', '']);
+        setDetailedTurns(gameState.detailedTurns || []);
+        setCurrentTurnNumber(gameState.currentTurnNumber || 1);
+      } catch (error) {
+        console.log('Failed to restore game state:', error);
+        // Clear corrupted data
+        localStorage.removeItem('skunkd-game-state');
+        setHasSavedGame(false);
+      }
+    }
+  }, []); // Empty dependency array means this runs once on mount
+
+  // Auto-save game state whenever it changes
+  useEffect(() => {
+    if (gameStarted) {
+      const gameState = {
+        gameStarted,
+        players,
+        scores,
+        currentPlayerIdx,
+        eliminated,
+        targetScore,
+        electiveRules,
+        winnerIdx,
+        overtime,
+        leaderIdx,
+        leaderScore,
+        turnHistory,
+        notesHistory,
+        playerNames,
+        detailedTurns,
+        currentTurnNumber
+      };
+      localStorage.setItem('skunkd-game-state', JSON.stringify(gameState));
+    }
+  }, [gameStarted, players, scores, currentPlayerIdx, eliminated, targetScore, 
+      electiveRules, winnerIdx, overtime, leaderIdx, leaderScore, turnHistory, 
+      notesHistory, playerNames, detailedTurns, currentTurnNumber]);
 
   /**
    * Creates a deep copy snapshot of the current game state
@@ -338,6 +406,10 @@ export default function App() {
     
     // Reset notes for fresh start
     setNotesHistory([]);
+    
+    // Clear any previous saved state when starting fresh
+    localStorage.removeItem('skunkd-game-state');
+    setHasSavedGame(false);
   }
 
   function handleBankPoints(points) {
@@ -491,6 +563,10 @@ export default function App() {
     
     // Reset notes for fresh start
     setNotesHistory([]);
+    
+    // Clear saved game state
+    localStorage.removeItem('skunkd-game-state');
+    setHasSavedGame(false);
   }
 
   // Save game to history
@@ -566,18 +642,45 @@ export default function App() {
             cursor: "pointer"
           }}
           onClick={() => {
-            if (!document.fullscreenElement) {
-              document.documentElement.requestFullscreen().catch(err => {
-                console.log('Error attempting to enable fullscreen:', err);
-              });
+            const isInIframe = window !== window.parent;
+            
+            if (isInIframe) {
+              // If in iframe, open in new window instead
+              window.open(window.location.href, '_blank');
             } else {
-              document.exitFullscreen();
+              // Normal fullscreen functionality
+              if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                  console.log('Error attempting to enable fullscreen:', err);
+                  alert('Fullscreen not supported in this browser.');
+                });
+              } else {
+                document.exitFullscreen();
+              }
             }
           }}
+          title={window !== window.parent ? "Open in new window" : "Toggle fullscreen mode"}
         >
-          🔳 Fullscreen
+          {window !== window.parent ? "🔗 Open Full App" : "🔳 Fullscreen"}
         </button>
       </div>
+      
+      {/* Show "Game Resumed" indicator if applicable */}
+      {hasSavedGame && gameStarted && (
+        <div style={{
+          background: "#4caf50",
+          color: "#fff",
+          padding: "8px 16px",
+          borderRadius: "8px",
+          marginBottom: "16px",
+          textAlign: "center",
+          fontWeight: "bold",
+          boxShadow: "0 2px 8px rgba(76, 175, 80, 0.3)"
+        }}>
+          ✅ Game Resumed from Previous Session
+        </div>
+      )}
+      
       <GameHistoryModal
         history={gameHistory}
         open={showHistory}
@@ -634,6 +737,24 @@ export default function App() {
         </div>
       ) : (
         <div>
+          {/* Active Rule Cards */}
+          {activeRules.length > 0 && (
+            <div style={{ margin: '16px 0', background: '#222', padding: 12, borderRadius: 10 }}>
+              <h3>Active Rules:</h3>
+              <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+                {activeRules.map(rule => (
+                  <div key={rule.key} style={{ textAlign: 'center' }}>
+                    {rule.img && (
+                      <img src={rule.img} alt={rule.label} style={{ height: 80, marginBottom: 6 }} />
+                    )}
+                    <div style={{ color: '#ffd700', fontWeight: 'bold' }}>{rule.label}</div>
+                    <div style={{ fontSize: 12, color: '#aaa' }}>{rule.description}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <h2>Scores</h2>
           <ul>
             {players.map((name, idx) => (
@@ -654,23 +775,7 @@ export default function App() {
               </li>
             ))}
           </ul>
-          {/* Active Rule Cards */}
-          {activeRules.length > 0 && (
-            <div style={{ margin: '16px 0', background: '#222', padding: 12, borderRadius: 10 }}>
-              <h3>Active Rules:</h3>
-              <div style={{ display: 'flex', gap: 18 }}>
-                {activeRules.map(rule => (
-                  <div key={rule.key} style={{ textAlign: 'center' }}>
-                    {rule.img && (
-                      <img src={rule.img} alt={rule.label} style={{ height: 80, marginBottom: 6 }} />
-                    )}
-                    <div style={{ color: '#ffd700', fontWeight: 'bold' }}>{rule.label}</div>
-                    <div style={{ fontSize: 12, color: '#aaa' }}>{rule.description}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          
           {winnerIdx === null ? (
             <>
               <TurnManagerManual
@@ -696,7 +801,7 @@ export default function App() {
           ) : (
             <div>
               <h2>Game Over! Winner: {players[winnerIdx]}</h2>
-              <button onClick={resetGame}>New Game</button>
+              <button onClick={() => setShowResetConfirm(true)}>New Game</button>
             </div>
           )}
           <br />
@@ -720,7 +825,7 @@ export default function App() {
           >
             🔄 Undo Last Turn
           </button>
-          <button onClick={resetGame} style={{ marginTop: 16 }}>Reset Game</button>
+          <button onClick={() => setShowResetConfirm(true)} style={{ marginTop: 16 }}>Reset Game</button>
           
           {/* Confirmation Dialog for Undo Last Turn */}
           {showUndoConfirm && (
@@ -738,6 +843,33 @@ export default function App() {
                   <button 
                     className="confirm-no"
                     onClick={() => setShowUndoConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Confirmation Dialog for Reset Game */}
+          {showResetConfirm && (
+            <div className="confirm-dialog-overlay">
+              <div className="confirm-dialog">
+                <h3>⚠️ Confirm Reset</h3>
+                <p>Are you sure you want to reset the game? This will end the current game and return to the setup screen. All progress will be lost.</p>
+                <div className="confirm-dialog-buttons">
+                  <button 
+                    className="confirm-yes"
+                    onClick={() => {
+                      resetGame();
+                      setShowResetConfirm(false);
+                    }}
+                  >
+                    Yes, Reset
+                  </button>
+                  <button 
+                    className="confirm-no"
+                    onClick={() => setShowResetConfirm(false)}
                   >
                     Cancel
                   </button>
