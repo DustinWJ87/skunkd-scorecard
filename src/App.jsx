@@ -643,17 +643,28 @@ export default function App() {
           }}
           onClick={() => {
             const isInIframe = window !== window.parent;
+            console.log('Header expand button clicked, isInIframe:', isInIframe);
             
             if (isInIframe) {
-              // Try to communicate with parent window to expand iframe
+              // We're in an iframe, send message to parent
               try {
+                console.log('Sending postMessage to parent...');
                 window.parent.postMessage({
                   type: 'expandApp',
                   action: 'requestFullscreen'
                 }, '*');
+                console.log('PostMessage sent successfully');
+                
+                // Show user feedback
+                setTimeout(() => {
+                  alert('Expand request sent! If nothing happens, please check that the expand code is installed on your website.');
+                }, 100);
               } catch (e) {
+                console.error('PostMessage failed:', e);
                 // Fallback: open in new window if parent communication fails
-                window.open(window.location.href, '_blank');
+                if (confirm('Could not expand within the current page. Would you like to open in a new window instead?')) {
+                  window.open(window.location.href, '_blank');
+                }
               }
             } else {
               // Normal fullscreen functionality

@@ -346,16 +346,25 @@ export default function TurnManagerManual({
                 cursor: "pointer", marginLeft: 10
               }}
               onClick={() => {
+                console.log('Expand button clicked, isInIframe:', isInIframe);
                 // Try to communicate with parent window to expand iframe
                 try {
+                  console.log('Sending postMessage to parent...');
                   // Send message to parent to expand the iframe
                   window.parent.postMessage({
                     type: 'expandApp',
                     action: 'requestFullscreen'
                   }, '*');
+                  console.log('PostMessage sent successfully');
+                  
+                  // Show user feedback that the request was sent
+                  alert('Expand request sent! If nothing happens, the parent site may not have the listener code installed.');
                 } catch (e) {
+                  console.error('PostMessage failed:', e);
                   // Fallback: open in new window if parent communication fails
-                  window.open(window.location.href, '_blank');
+                  if (confirm('Could not expand within the current page. Would you like to open in a new window instead?')) {
+                    window.open(window.location.href, '_blank');
+                  }
                 }
               }}
             >

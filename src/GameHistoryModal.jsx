@@ -249,22 +249,44 @@ export default function GameHistoryModal({ history, open, onClose }) {
                         padding: "7px 14px", border: "none", fontWeight: "bold", cursor: "pointer"
                       }}
                       onClick={() => {
-                        const notesText = Array.isArray(game.notes) && game.notes.length > 0
-                          ? game.notes.map(note => `  ${new Date(note.timestamp).toLocaleTimeString()}: ${note.text}`).join('\n')
-                          : "None";
-                        const shareText = [
-                          `SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
-                          `Goal Score: ${game.goalScore || 'Unknown'}`,
-                          ...game.players.map((p, i) =>
-                            `${p}: ${game.scores[i]}${game.winnerIdx === i ? " 👑 Winner!" : ""}`),
-                          `Total Turns: ${game.gameStats?.totalTurns || 'Unknown'}`,
-                          `Notes:\n${notesText}`
-                        ].join('\n');
-                        if (navigator.share) {
-                          navigator.share({ title: "SKUNK'D Results", text: shareText });
-                        } else {
-                          navigator.clipboard.writeText(shareText);
-                          alert('Results copied to clipboard!');
+                        try {
+                          const notesText = Array.isArray(game.notes) && game.notes.length > 0
+                            ? game.notes.map(note => `  ${new Date(note.timestamp).toLocaleTimeString()}: ${note.text}`).join('\n')
+                            : "None";
+                          const shareText = [
+                            `SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
+                            `Goal Score: ${game.goalScore || 'Unknown'}`,
+                            ...game.players.map((p, i) =>
+                              `${p}: ${game.scores[i]}${game.winnerIdx === i ? " 👑 Winner!" : ""}`),
+                            `Total Turns: ${game.gameStats?.totalTurns || 'Unknown'}`,
+                            `Notes:\n${notesText}`
+                          ].join('\n');
+                          
+                          console.log('Share button clicked, shareText:', shareText);
+                          
+                          if (navigator.share) {
+                            console.log('Using navigator.share');
+                            navigator.share({ title: "SKUNK'D Results", text: shareText }).catch(err => {
+                              console.error('Navigator.share failed:', err);
+                              alert('Share failed, but text is in console');
+                            });
+                          } else {
+                            console.log('Using clipboard API');
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                              navigator.clipboard.writeText(shareText).then(() => {
+                                alert('Results copied to clipboard!');
+                              }).catch(err => {
+                                console.error('Clipboard write failed:', err);
+                                alert('Clipboard access failed. Try using the Copy button or check console for text.');
+                              });
+                            } else {
+                              console.error('Clipboard API not available');
+                              alert('Clipboard not available. Text is logged to console.');
+                            }
+                          }
+                        } catch (error) {
+                          console.error('Share button error:', error);
+                          alert('Share failed - check console for details');
                         }
                       }}
                     >Share</button>
@@ -274,19 +296,60 @@ export default function GameHistoryModal({ history, open, onClose }) {
                         padding: "7px 14px", border: "none", fontWeight: "bold", cursor: "pointer"
                       }}
                       onClick={() => {
-                        const notesText = Array.isArray(game.notes) && game.notes.length > 0
-                          ? game.notes.map(note => `  ${new Date(note.timestamp).toLocaleTimeString()}: ${note.text}`).join('\n')
-                          : "None";
-                        const shareText = [
-                          `SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
-                          `Goal Score: ${game.goalScore || 'Unknown'}`,
-                          ...game.players.map((p, i) =>
-                            `${p}: ${game.scores[i]}${game.winnerIdx === i ? " 👑 Winner!" : ""}`),
-                          `Total Turns: ${game.gameStats?.totalTurns || 'Unknown'}`,
-                          `Notes:\n${notesText}`
-                        ].join('\n');
-                        navigator.clipboard.writeText(shareText);
-                        alert('Results copied to clipboard!');
+                        try {
+                          const notesText = Array.isArray(game.notes) && game.notes.length > 0
+                            ? game.notes.map(note => `  ${new Date(note.timestamp).toLocaleTimeString()}: ${note.text}`).join('\n')
+                            : "None";
+                          const shareText = [
+                            `SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
+                            `Goal Score: ${game.goalScore || 'Unknown'}`,
+                            ...game.players.map((p, i) =>
+                              `${p}: ${game.scores[i]}${game.winnerIdx === i ? " 👑 Winner!" : ""}`),
+                            `Total Turns: ${game.gameStats?.totalTurns || 'Unknown'}`,
+                            `Notes:\n${notesText}`
+                          ].join('\n');
+                          
+                          console.log('Copy button clicked, shareText:', shareText);
+                          
+                          if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(shareText).then(() => {
+                              alert('Results copied to clipboard!');
+                            }).catch(err => {
+                              console.error('Clipboard write failed:', err);
+                              // Fallback: try using execCommand
+                              try {
+                                const textArea = document.createElement('textarea');
+                                textArea.value = shareText;
+                                document.body.appendChild(textArea);
+                                textArea.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(textArea);
+                                alert('Results copied to clipboard (fallback method)!');
+                              } catch (fallbackErr) {
+                                console.error('Fallback copy failed:', fallbackErr);
+                                alert('Copy failed. Text is in console log.');
+                              }
+                            });
+                          } else {
+                            console.error('Clipboard API not available, trying fallback');
+                            // Fallback method
+                            try {
+                              const textArea = document.createElement('textarea');
+                              textArea.value = shareText;
+                              document.body.appendChild(textArea);
+                              textArea.select();
+                              document.execCommand('copy');
+                              document.body.removeChild(textArea);
+                              alert('Results copied to clipboard!');
+                            } catch (fallbackErr) {
+                              console.error('Fallback copy failed:', fallbackErr);
+                              alert('Copy failed. Text is logged to console.');
+                            }
+                          }
+                        } catch (error) {
+                          console.error('Copy button error:', error);
+                          alert('Copy failed - check console for details');
+                        }
                       }}
                     >Copy</button>
                   </div>
