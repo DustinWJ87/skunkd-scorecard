@@ -13,9 +13,7 @@ import megaPlusCard from './assets/cards/mega_plus.png';
 import mulliganCard from './assets/cards/mulligan.png';
 import pungentCard from './assets/cards/pungent.png';
 import sixTwoEvenCard from './assets/cards/six_two_even.png';
-import slowBoatCard from './assets/cards/slow_boat.          title={window !== window.parent ? "Open app in new window" : "Toggle fullscreen mode"}
-        >
-          {window !== window.parent ? "🚀 Open Full App" : "🔳 Fullscreen"}';
+import slowBoatCard from './assets/cards/slow_boat.png';
 import stripesPlusCard from './assets/cards/stripes_plus.png';
 import stinkySuperSkunkdCard from './assets/cards/stinky_super_skunkd.png';
 import singleCincoCard from './assets/cards/single_cinco.png';
@@ -677,9 +675,9 @@ export default function App() {
               }
             }
           }}
-          title={window !== window.parent ? "Expand app on your site" : "Toggle fullscreen mode"}
+          title={window !== window.parent ? "Open app in new window" : "Toggle fullscreen mode"}
         >
-          {window !== window.parent ? "� Expand App" : "🔳 Fullscreen"}
+          {window !== window.parent ? "🚀 Open Full App" : "🔳 Fullscreen"}
         </button>
         {(window !== window.parent || window.opener) && (
           <button
