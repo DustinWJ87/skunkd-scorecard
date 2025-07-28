@@ -375,14 +375,14 @@ export default function TurnManagerManual({
                 cursor: "pointer", marginLeft: 10
               }}
               onClick={() => {
-                console.log('Expand button clicked, isInIframe:', isInIframe);
+                console.log('Open Full App button clicked, isInIframe:', isInIframe);
                 
-                // Option A: Always open in new window (most reliable)
-                if (confirm('Open the app in a new window for fullscreen experience?')) {
+                // Always open in new window (most reliable approach)
+                if (confirm('Open the app in a new window for the best fullscreen experience?')) {
                   const newWindow = window.open(
                     window.location.href, 
                     'skunkd_fullscreen',
-                    'width=1200,height=900,scrollbars=yes,resizable=yes'
+                    'width=1200,height=900,scrollbars=yes,resizable=yes,toolbar=no,menubar=no'
                   );
                   
                   if (newWindow) {
@@ -391,35 +391,9 @@ export default function TurnManagerManual({
                   } else {
                     alert('Popup blocked. Please allow popups for this site and try again.');
                   }
+                } else {
+                  console.log('User cancelled new window open');
                 }
-                
-                // Option B: Try iframe expansion first, fallback to new window
-                try {
-                  console.log('Sending postMessage to parent...');
-                  window.parent.postMessage({
-                    type: 'expandApp',
-                    action: 'requestFullscreen',
-                    timestamp: Date.now(),
-                    url: window.location.href
-                  }, '*');
-                  console.log('PostMessage sent successfully');
-                  
-                  // Give time for parent to respond, then offer new window
-                  setTimeout(() => {
-                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                      if (confirm('Expand within page didn\'t work. Open in new window instead?')) {
-                        window.open(window.location.href, '_blank', 'width=1200,height=900');
-                      }
-                    }
-                  }, 1500);
-                  
-                } catch (e) {
-                  console.error('PostMessage failed:', e);
-                  if (confirm('Could not expand. Open in new window instead?')) {
-                    window.open(window.location.href, '_blank', 'width=1200,height=900');
-                  }
-                }
-                
               }}
             >
               � Open Full App
