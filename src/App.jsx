@@ -13,7 +13,9 @@ import megaPlusCard from './assets/cards/mega_plus.png';
 import mulliganCard from './assets/cards/mulligan.png';
 import pungentCard from './assets/cards/pungent.png';
 import sixTwoEvenCard from './assets/cards/six_two_even.png';
-import slowBoatCard from './assets/cards/slow_boat.png';
+import slowBoatCard from './assets/cards/slow_boat.          title={window !== window.parent ? "Open app in new window" : "Toggle fullscreen mode"}
+        >
+          {window !== window.parent ? "🚀 Open Full App" : "🔳 Fullscreen"}';
 import stripesPlusCard from './assets/cards/stripes_plus.png';
 import stinkySuperSkunkdCard from './assets/cards/stinky_super_skunkd.png';
 import singleCincoCard from './assets/cards/single_cinco.png';
@@ -643,31 +645,28 @@ export default function App() {
           }}
           onClick={() => {
             const isInIframe = window !== window.parent;
-            console.log('Header expand button clicked, isInIframe:', isInIframe);
+            console.log('Header expand/fullscreen button clicked, isInIframe:', isInIframe);
             
             if (isInIframe) {
-              // We're in an iframe, send message to parent
-              try {
-                console.log('Sending postMessage to parent...');
-                window.parent.postMessage({
-                  type: 'expandApp',
-                  action: 'requestFullscreen'
-                }, '*');
-                console.log('PostMessage sent successfully');
+              // We're in an iframe, open in new window
+              if (confirm('Open the app in a new window for the best fullscreen experience?')) {
+                const newWindow = window.open(
+                  window.location.href, 
+                  'skunkd_fullscreen',
+                  'width=1200,height=900,scrollbars=yes,resizable=yes,toolbar=no,menubar=no'
+                );
                 
-                // Show user feedback
-                setTimeout(() => {
-                  alert('Expand request sent! If nothing happens, please check that the expand code is installed on your website.');
-                }, 100);
-              } catch (e) {
-                console.error('PostMessage failed:', e);
-                // Fallback: open in new window if parent communication fails
-                if (confirm('Could not expand within the current page. Would you like to open in a new window instead?')) {
-                  window.open(window.location.href, '_blank');
+                if (newWindow) {
+                  newWindow.focus();
+                  console.log('New window opened successfully');
+                } else {
+                  alert('Popup blocked. Please allow popups for this site and try again.');
                 }
+              } else {
+                console.log('User cancelled new window open');
               }
             } else {
-              // Normal fullscreen functionality
+              // Normal fullscreen functionality for standalone use
               if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
                   console.log('Error attempting to enable fullscreen:', err);
