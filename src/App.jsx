@@ -639,7 +639,7 @@ export default function App() {
           style={{
             background: "#4a90e2", color: "#fff", borderRadius: 8,
             padding: "8px 14px", border: "none", fontWeight: "bold",
-            cursor: "pointer"
+            cursor: "pointer", marginRight: window !== window.parent ? 10 : 0
           }}
           onClick={() => {
             const isInIframe = window !== window.parent;
@@ -663,6 +663,35 @@ export default function App() {
         >
           {window !== window.parent ? "🔗 Open Full App" : "🔳 Fullscreen"}
         </button>
+        {window !== window.parent && (
+          <button
+            style={{
+              background: "#dc3545", color: "#fff", borderRadius: 8,
+              padding: "8px 14px", border: "none", fontWeight: "bold",
+              cursor: "pointer"
+            }}
+            onClick={() => {
+              if (window.confirm('Are you sure you want to exit the app?')) {
+                // Try different methods to close/minimize the embedded view
+                try {
+                  window.close(); // Works if opened via window.open
+                } catch (e) {
+                  // Fallback: try to navigate back or minimize
+                  if (window.history.length > 1) {
+                    window.history.back();
+                  } else {
+                    // Last resort: hide the content or show exit message
+                    document.body.style.display = 'none';
+                    alert('You can now close this tab or navigate away from this page.');
+                  }
+                }
+              }
+            }}
+            title="Exit the app"
+          >
+            ❌ Exit App
+          </button>
+        )}
       </div>
       
       {/* Show "Game Resumed" indicator if applicable */}
