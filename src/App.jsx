@@ -645,8 +645,16 @@ export default function App() {
             const isInIframe = window !== window.parent;
             
             if (isInIframe) {
-              // If in iframe, open in new window instead
-              window.open(window.location.href, '_blank');
+              // Try to communicate with parent window to expand iframe
+              try {
+                window.parent.postMessage({
+                  type: 'expandApp',
+                  action: 'requestFullscreen'
+                }, '*');
+              } catch (e) {
+                // Fallback: open in new window if parent communication fails
+                window.open(window.location.href, '_blank');
+              }
             } else {
               // Normal fullscreen functionality
               if (!document.fullscreenElement) {
@@ -659,9 +667,9 @@ export default function App() {
               }
             }
           }}
-          title={window !== window.parent ? "Open in new window" : "Toggle fullscreen mode"}
+          title={window !== window.parent ? "Expand app on your site" : "Toggle fullscreen mode"}
         >
-          {window !== window.parent ? "🔗 Open Full App" : "🔳 Fullscreen"}
+          {window !== window.parent ? "� Expand App" : "🔳 Fullscreen"}
         </button>
         {(window !== window.parent || window.opener) && (
           <button

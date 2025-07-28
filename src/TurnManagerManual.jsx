@@ -346,10 +346,20 @@ export default function TurnManagerManual({
                 cursor: "pointer", marginLeft: 10
               }}
               onClick={() => {
-                window.open(window.location.href, '_blank');
+                // Try to communicate with parent window to expand iframe
+                try {
+                  // Send message to parent to expand the iframe
+                  window.parent.postMessage({
+                    type: 'expandApp',
+                    action: 'requestFullscreen'
+                  }, '*');
+                } catch (e) {
+                  // Fallback: open in new window if parent communication fails
+                  window.open(window.location.href, '_blank');
+                }
               }}
             >
-              Open Full App
+              🔍 Expand App
             </button>
           )}
         </div>
