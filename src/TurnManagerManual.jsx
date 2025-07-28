@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 // Import your logo and icon images
-import skunkdLogo from './assets/skunkd-logo.png'; // Image 1
+import cardBack from './assets/cardback.png'; // Image 1
 import skunkdIcon from './assets/skunkd-icon.png'; // Image 2
 import stinkSheetImg from './assets/stink-sheet.png'; // Image 3
 import hoj from './assets/hoj.png'; // Image 4
@@ -113,6 +113,9 @@ export default function TurnManagerManual({
   // Two-column responsive layout styles (more mobile-friendly)
   const containerStyle = {
     background: 'linear-gradient(135deg, #111 70%, #1e1e1e 100%)',
+    backgroundImage: `url(${cardBack})`,
+    backgroundSize: 'contain',
+    backgroundRepeat: 'no-repeat',
     borderRadius: '20px',
     boxShadow: '0 6px 32px #0006',
     padding: '20px 16px',

@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.87b77ffe.css",
-    "main.js": "/static/js/main.3e2754c5.js",
+    "main.js": "/static/js/main.1c3d6b97.js",
     "static/media/stinky_super_skunkd.png": "/static/media/stinky_super_skunkd.dfa4741b606e19b3b22a.png",
     "static/media/six_two_even.png": "/static/media/six_two_even.9b7e5823b12d81dc5dfc.png",
     "static/media/extreme.png": "/static/media/extreme.a58c672aea2486cb7c94.png",
@@ -14,14 +14,15 @@
     "static/media/stripes_plus.png": "/static/media/stripes_plus.f02463ee0a6c1b17f5c3.png",
     "static/media/stink-sheet.png": "/static/media/stink-sheet.4ac65eb03cda0eb15c58.png",
     "static/media/hoj.png": "/static/media/hoj.7d0cfe54fc21ab8515a4.png",
+    "static/media/cardback.png": "/static/media/cardback.23b554663c29c1fbe336.png",
     "static/media/skunkd-logo.png": "/static/media/skunkd-logo.342313a916bbe304af29.png",
     "static/media/skunkd-icon.png": "/static/media/skunkd-icon.d282dfc8f198e5ced1a4.png",
     "index.html": "/index.html",
     "main.87b77ffe.css.map": "/static/css/main.87b77ffe.css.map",
-    "main.3e2754c5.js.map": "/static/js/main.3e2754c5.js.map"
+    "main.1c3d6b97.js.map": "/static/js/main.1c3d6b97.js.map"
   },
   "entrypoints": [
     "static/css/main.87b77ffe.css",
-    "static/js/main.3e2754c5.js"
+    "static/js/main.1c3d6b97.js"
   ]
 }

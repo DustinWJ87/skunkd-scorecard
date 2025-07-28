@@ -212,6 +212,9 @@ export default function App() {
   
   // State for tracking if game was restored from save
   const [hasSavedGame, setHasSavedGame] = useState(false);
+  
+  // State for tracking which rule descriptions are expanded (mobile-friendly)
+  const [expandedRules, setExpandedRules] = useState({});
 
   // Load saved game state on app start
   useEffect(() => {
@@ -336,6 +339,13 @@ export default function App() {
     setElectiveRules(rules => ({
       ...rules,
       [ruleKey]: !rules[ruleKey]
+    }));
+  }
+
+  function toggleRuleDescription(ruleKey) {
+    setExpandedRules(prev => ({
+      ...prev,
+      [ruleKey]: !prev[ruleKey]
     }));
   }
 
@@ -773,19 +783,44 @@ export default function App() {
           <h3>Elective Rules</h3>
           <div>
             {ELECTIVE_RULES.map(rule => (
-              <label key={rule.key} style={{ display: "block", marginBottom: 6 }}>
-                <input
-                  type="checkbox"
-                  checked={electiveRules[rule.key]}
-                  onChange={() => handleRuleChange(rule.key)}
-                />
-                <span title={rule.description} style={{ textDecoration: "underline dotted", cursor: "help" }}>
-                  {rule.label}
-                </span>
-                {rule.img && (
-                  <img src={rule.img} alt={rule.label} style={{ height: 32, marginLeft: 8, verticalAlign: 'middle' }} />
+              <div key={rule.key} style={{ marginBottom: 12, background: '#222', padding: 8, borderRadius: 8 }}>
+                <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={electiveRules[rule.key]}
+                    onChange={() => handleRuleChange(rule.key)}
+                    style={{ marginRight: 8 }}
+                  />
+                  <span 
+                    onClick={() => toggleRuleDescription(rule.key)}
+                    style={{ 
+                      textDecoration: "underline dotted", 
+                      cursor: "pointer",
+                      flex: 1,
+                      userSelect: "none"
+                    }}
+                    title="Tap to see rule description"
+                  >
+                    {rule.label} {expandedRules[rule.key] ? '▼' : '▶'}
+                  </span>
+                  {rule.img && (
+                    <img src={rule.img} alt={rule.label} style={{ height: 32, marginLeft: 8 }} />
+                  )}
+                </label>
+                {expandedRules[rule.key] && (
+                  <div style={{
+                    marginTop: 8,
+                    padding: 8,
+                    background: '#333',
+                    borderRadius: 4,
+                    fontSize: '0.9em',
+                    color: '#ccc',
+                    borderLeft: '3px solid #ffd700'
+                  }}>
+                    {rule.description}
+                  </div>
                 )}
-              </label>
+              </div>
             ))}
           </div>
           <button onClick={startGame} disabled={playerNames.every(n => !n.trim())} style={{ marginTop: 12 }}>
