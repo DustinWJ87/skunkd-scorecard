@@ -221,6 +221,18 @@ export default function App() {
 
   // Load saved game state on app start
   useEffect(() => {
+    // Check if the app should open directly (from URL parameter)
+    const urlParams = new URLSearchParams(window.location.search);
+    const shouldOpenDirectly = urlParams.get('open') === 'true';
+    
+    if (shouldOpenDirectly) {
+      setAppOpened(true);
+      // Clean up the URL parameter
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('open');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+    
     const savedGameState = localStorage.getItem('skunkd-game-state');
     if (savedGameState) {
       try {
@@ -721,8 +733,12 @@ export default function App() {
                if (isInIframe) {
                  // We're in an iframe, open in new window
                  if (confirm('Open the app in a new window for the best fullscreen experience?')) {
+                   // Add a parameter to the URL to indicate the app should open directly
+                   const url = new URL(window.location.href);
+                   url.searchParams.set('open', 'true');
+                   
                    const newWindow = window.open(
-                     window.location.href, 
+                     url.toString(), 
                      'skunkd_fullscreen',
                      'width=1200,height=900,scrollbars=yes,resizable=yes,toolbar=no,menubar=no'
                    );
@@ -737,15 +753,8 @@ export default function App() {
                    console.log('User cancelled new window open');
                  }
                } else {
-                 // Normal fullscreen functionality for standalone use
-                 if (!document.fullscreenElement) {
-                   document.documentElement.requestFullscreen().catch(err => {
-                     console.log('Error attempting to enable fullscreen:', err);
-                     alert('Fullscreen not supported in this browser.');
-                   });
-                 } else {
-                   document.exitFullscreen();
-                 }
+                 // For standalone use, just open the app directly
+                 setAppOpened(true);
                }
              }}
              style={{
