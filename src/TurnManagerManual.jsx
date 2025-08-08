@@ -33,7 +33,7 @@ export default function TurnManagerManual({
 
   // Turn-level undo for banked points (within current turn only)
   const [turnActions, setTurnActions] = useState([]);
-  const [isNotesCollapsed, setIsNotesCollapsed] = useState(window.innerWidth < 768);
+  const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);
 
   // Update notes in history on change
   useEffect(() => {
@@ -46,14 +46,23 @@ export default function TurnManagerManual({
     setDenPoints(0);
   }, [playerName]);
 
-  // Handle responsive notes collapse
+  // Handle responsive notes collapse - only collapse on initial load for mobile
   useEffect(() => {
     const handleResize = () => {
-      setIsNotesCollapsed(window.innerWidth < 768);
+      // Only auto-collapse on initial load, not on every resize
+      if (window.innerWidth < 768 && !isNotesCollapsed) {
+        setIsNotesCollapsed(true);
+      }
     };
+    
+    // Set initial state based on screen size
+    if (window.innerWidth < 768) {
+      setIsNotesCollapsed(true);
+    }
+    
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [isNotesCollapsed]);
 
   // Add a note to the notes array
   function addNote() {
@@ -163,14 +172,16 @@ export default function TurnManagerManual({
     color: "#222",
     border: "none",
     borderRadius: "4px",
-    padding: "4px 8px",
-    fontSize: "0.8em",
+    padding: "6px 10px",
+    fontSize: "0.9em",
     cursor: "pointer",
     display: window.innerWidth < 768 ? "block" : "none",
     zIndex: 10,
-    minWidth: "24px",
-    minHeight: "24px",
-    userSelect: "none"
+    minWidth: "28px",
+    minHeight: "28px",
+    userSelect: "none",
+    touchAction: "manipulation",
+    WebkitTapHighlightColor: "transparent"
   };
 
   // Cheat sheet modal style
@@ -659,7 +670,11 @@ export default function TurnManagerManual({
 
       {/* Right Column - Notes Area */}
       <div style={rightColumnStyle}>
-        <div style={notesAreaStyle}>
+                 <div 
+           style={notesAreaStyle}
+           onClick={(e) => e.stopPropagation()}
+           onTouchStart={(e) => e.stopPropagation()}
+         >
           <button
             style={notesToggleStyle}
             onClick={(e) => {
@@ -672,30 +687,33 @@ export default function TurnManagerManual({
           <strong>Add Note:</strong>
           {!isNotesCollapsed && (
             <>
-              <textarea
-                value={currentNote}
-                onChange={e => setCurrentNote(e.target.value)}
-                placeholder="Jot down player remarks, bonus, etc..."
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    addNote();
-                  }
-                }}
-                onClick={e => e.stopPropagation()}
-                onTouchStart={e => e.stopPropagation()}
-                style={{
-                  width: "100%",
-                  minHeight: "80px",
-                  border: "none",
-                  background: "transparent",
-                  resize: "vertical",
-                  color: "#333",
-                  fontFamily: "inherit",
-                  fontSize: "1em",
-                  marginTop: "6px"
-                }}
-              />
+                             <textarea
+                 value={currentNote}
+                 onChange={e => setCurrentNote(e.target.value)}
+                 placeholder="Jot down player remarks, bonus, etc..."
+                 onKeyDown={e => {
+                   if (e.key === 'Enter' && !e.shiftKey) {
+                     e.preventDefault();
+                     addNote();
+                   }
+                 }}
+                 onClick={e => e.stopPropagation()}
+                 onTouchStart={e => e.stopPropagation()}
+                 onTouchEnd={e => e.stopPropagation()}
+                 onTouchMove={e => e.stopPropagation()}
+                 style={{
+                   width: "100%",
+                   minHeight: "80px",
+                   border: "none",
+                   background: "transparent",
+                   resize: "vertical",
+                   color: "#333",
+                   fontFamily: "inherit",
+                   fontSize: "1em",
+                   marginTop: "6px",
+                   touchAction: "manipulation"
+                 }}
+               />
               <button
                 onClick={addNote}
                 disabled={!currentNote.trim()}
