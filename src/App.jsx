@@ -215,6 +215,9 @@ export default function App() {
   
   // State for tracking which rule descriptions are expanded (mobile-friendly)
   const [expandedRules, setExpandedRules] = useState({});
+  
+  // State for tracking if the app has been opened (shows initial screen vs setup/game)
+  const [appOpened, setAppOpened] = useState(false);
 
   // Load saved game state on app start
   useEffect(() => {
@@ -244,6 +247,9 @@ export default function App() {
         setPlayerNames(gameState.playerNames || ['', '', '', '']);
         setDetailedTurns(gameState.detailedTurns || []);
         setCurrentTurnNumber(gameState.currentTurnNumber || 1);
+        
+        // If there's a saved game, automatically open the app
+        setAppOpened(true);
       } catch (error) {
         console.log('Failed to restore game state:', error);
         // Clear corrupted data
@@ -577,6 +583,9 @@ export default function App() {
     // Clear saved game state
     localStorage.removeItem('skunkd-game-state');
     setHasSavedGame(false);
+    
+    // Reset app opened state to go back to initial screen
+    setAppOpened(false);
   }
 
   // Save game to history
@@ -753,9 +762,94 @@ export default function App() {
         open={showHistory}
         onClose={() => setShowHistory(false)}
       />
-      {!gameStarted ? (
+      {!appOpened ? (
+        // Initial welcome screen
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '40px 20px',
+          background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)',
+          borderRadius: '16px',
+          border: '2px solid #ffd700',
+          boxShadow: '0 8px 32px rgba(255, 215, 0, 0.2)'
+        }}>
+          <img 
+            src={skunkdLogo} 
+            alt="SKUNK'D Logo" 
+            style={{ 
+              height: '120px',
+              maxWidth: '400px',
+              objectFit: 'contain',
+              marginBottom: '30px'
+            }} 
+          />
+          <h1 style={{ 
+            color: '#ffd700', 
+            fontSize: '2.5em', 
+            marginBottom: '20px',
+            textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+          }}>
+            Welcome to SKUNK'D
+          </h1>
+          <p style={{ 
+            fontSize: '1.2em', 
+            color: '#ccc', 
+            marginBottom: '40px',
+            lineHeight: '1.6'
+          }}>
+            Ready to track your SKUNK'D game? Open the scorecard to get started!
+          </p>
+          <button 
+            onClick={() => setAppOpened(true)}
+            style={{
+              background: 'linear-gradient(45deg, #ffd700, #ffed4e)',
+              color: '#222',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '16px 32px',
+              fontSize: '1.3em',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(255, 215, 0, 0.3)',
+              transition: 'all 0.3s ease',
+              textTransform: 'uppercase',
+              letterSpacing: '1px'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 6px 20px rgba(255, 215, 0, 0.4)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 16px rgba(255, 215, 0, 0.3)';
+            }}
+          >
+            🎲 Open Scorecard
+          </button>
+        </div>
+      ) : !gameStarted ? (
         <div>
-          <h2>New Game Setup</h2>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            <h2>New Game Setup</h2>
+            <button 
+              onClick={() => setAppOpened(false)}
+              style={{
+                background: '#444',
+                color: '#fff',
+                border: '1px solid #666',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                cursor: 'pointer',
+                fontSize: '0.9em'
+              }}
+            >
+              ← Back to Home
+            </button>
+          </div>
           {playerNames.map((name, idx) => (
             <div key={idx}>
               <input
