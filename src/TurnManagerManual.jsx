@@ -166,7 +166,11 @@ export default function TurnManagerManual({
     padding: "4px 8px",
     fontSize: "0.8em",
     cursor: "pointer",
-    display: window.innerWidth < 768 ? "block" : "none"
+    display: window.innerWidth < 768 ? "block" : "none",
+    zIndex: 10,
+    minWidth: "24px",
+    minHeight: "24px",
+    userSelect: "none"
   };
 
   // Cheat sheet modal style
@@ -658,7 +662,10 @@ export default function TurnManagerManual({
         <div style={notesAreaStyle}>
           <button
             style={notesToggleStyle}
-            onClick={() => setIsNotesCollapsed(!isNotesCollapsed)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsNotesCollapsed(!isNotesCollapsed);
+            }}
           >
             {isNotesCollapsed ? "+" : "-"}
           </button>
@@ -675,6 +682,8 @@ export default function TurnManagerManual({
                     addNote();
                   }
                 }}
+                onClick={e => e.stopPropagation()}
+                onTouchStart={e => e.stopPropagation()}
                 style={{
                   width: "100%",
                   minHeight: "80px",
