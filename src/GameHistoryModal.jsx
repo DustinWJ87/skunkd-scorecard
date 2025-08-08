@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 
-export default function GameHistoryModal({ history, open, onClose }) {
+export default function GameHistoryModal({ history, open, onClose, onDeleteGame }) {
   const [expandedGames, setExpandedGames] = useState(new Set());
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'multiplayer', 'solo'
 
   const toggleGameExpansion = (gameIdx) => {
     const newExpanded = new Set(expandedGames);
@@ -12,6 +13,22 @@ export default function GameHistoryModal({ history, open, onClose }) {
     }
     setExpandedGames(newExpanded);
   };
+
+  // Filter games based on active tab
+  const filteredGames = history.filter(game => {
+    if (activeTab === 'all') return true;
+    if (activeTab === 'multiplayer') return game.players.length > 1;
+    if (activeTab === 'solo') return game.players.length === 1;
+    return true;
+  });
+
+  // Count games by type
+  const multiplayerCount = history.filter(game => game.players.length > 1).length;
+  const soloCount = history.filter(game => game.players.length === 1).length;
+  
+  // Calculate highest solo score
+  const soloGames = history.filter(game => game.players.length === 1);
+  const highestSoloScore = soloGames.length > 0 ? Math.max(...soloGames.map(game => game.scores[0])) : 0;
 
   if (!open) return null;
   return (
@@ -34,22 +51,84 @@ export default function GameHistoryModal({ history, open, onClose }) {
           }}
         >Close</button>
         <h2 style={{ color: "#ffd700" }}>Past Games</h2>
-        {history.length === 0 ? (
-          <div style={{ color: "#fff", marginTop: 24 }}>No games have been saved yet.</div>
+        
+        {/* Tab Navigation */}
+        <div style={{ 
+          display: 'flex', 
+          marginBottom: 20, 
+          borderBottom: '2px solid #444',
+          gap: '4px'
+        }}>
+          <button
+            onClick={() => setActiveTab('all')}
+            style={{
+              background: activeTab === 'all' ? '#ffd700' : '#333',
+              color: activeTab === 'all' ? '#222' : '#fff',
+              border: 'none',
+              padding: '10px 16px',
+              borderRadius: '8px 8px 0 0',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '0.9em'
+            }}
+          >
+            All Games ({history.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('multiplayer')}
+            style={{
+              background: activeTab === 'multiplayer' ? '#ffd700' : '#333',
+              color: activeTab === 'multiplayer' ? '#222' : '#fff',
+              border: 'none',
+              padding: '10px 16px',
+              borderRadius: '8px 8px 0 0',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '0.9em'
+            }}
+          >
+            Multiplayer ({multiplayerCount})
+          </button>
+          <button
+            onClick={() => setActiveTab('solo')}
+            style={{
+              background: activeTab === 'solo' ? '#ffd700' : '#333',
+              color: activeTab === 'solo' ? '#222' : '#fff',
+              border: 'none',
+              padding: '10px 16px',
+              borderRadius: '8px 8px 0 0',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '0.9em'
+            }}
+          >
+            Solo Games ({soloCount})
+          </button>
+        </div>
+
+        {filteredGames.length === 0 ? (
+          <div style={{ color: "#fff", marginTop: 24 }}>
+            {activeTab === 'all' ? 'No games have been saved yet.' :
+             activeTab === 'multiplayer' ? 'No multiplayer games found.' :
+             'No solo games found.'}
+          </div>
         ) : (
           <div>
-            {history.map((game, idx) => {
-              const isExpanded = expandedGames.has(idx);
+            {filteredGames.map((game, filteredIdx) => {
+              // Find the original index in the history array
+              const originalIdx = history.findIndex(g => g.date === game.date && g.players.length === game.players.length);
+              const isExpanded = expandedGames.has(originalIdx);
               const hasDetailedData = game.detailedTurns && game.detailedTurns.length > 0;
+              const isSoloGame = game.players.length === 1;
               
               return (
-                <div key={idx} style={{
+                <div key={filteredIdx} style={{
                   background: "#111", borderRadius: 13, padding: 18, marginBottom: 16,
                   border: "2px solid #ffd700"
                 }}>
                   {/* Game Summary (Always Visible) */}
                   <div style={{ cursor: hasDetailedData ? 'pointer' : 'default' }} 
-                       onClick={() => hasDetailedData && toggleGameExpansion(idx)}>
+                       onClick={() => hasDetailedData && toggleGameExpansion(originalIdx)}>
                     <div style={{ 
                       display: 'flex', 
                       justifyContent: 'space-between', 
@@ -58,20 +137,55 @@ export default function GameHistoryModal({ history, open, onClose }) {
                     }}>
                       <div style={{ color: "#ccc", fontSize: "0.97em" }}>
                         <b>Date:</b> {new Date(game.date).toLocaleString()}
+                        {isSoloGame && (
+                          <span style={{ 
+                            marginLeft: '10px', 
+                            background: '#ffd700', 
+                            color: '#222', 
+                            padding: '2px 8px', 
+                            borderRadius: '12px', 
+                            fontSize: '0.8em',
+                            fontWeight: 'bold'
+                          }}>
+                            🦨 SOLO
+                          </span>
+                        )}
                       </div>
-                      {hasDetailedData && (
-                        <button style={{
-                          background: 'transparent',
-                          border: '1px solid #ffd700',
-                          color: '#ffd700',
-                          borderRadius: '4px',
-                          padding: '4px 8px',
-                          cursor: 'pointer',
-                          fontSize: '0.8em'
-                        }}>
-                          {isExpanded ? '▲ Hide Details' : '▼ Show Details'}
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {hasDetailedData && (
+                          <button style={{
+                            background: 'transparent',
+                            border: '1px solid #ffd700',
+                            color: '#ffd700',
+                            borderRadius: '4px',
+                            padding: '4px 8px',
+                            cursor: 'pointer',
+                            fontSize: '0.8em'
+                          }}>
+                            {isExpanded ? '▲ Hide Details' : '▼ Show Details'}
+                          </button>
+                        )}
+                        <button
+                                                     onClick={(e) => {
+                             e.stopPropagation();
+                             if (window.confirm('Are you sure you want to delete this game? This action cannot be undone.')) {
+                               onDeleteGame(originalIdx);
+                             }
+                           }}
+                          style={{
+                            background: '#dc3545',
+                            border: '1px solid #dc3545',
+                            color: '#fff',
+                            borderRadius: '4px',
+                            padding: '4px 8px',
+                            cursor: 'pointer',
+                            fontSize: '0.8em'
+                          }}
+                          title="Delete this game"
+                        >
+                          🗑️ Delete
                         </button>
-                      )}
+                      </div>
                     </div>
                     
                     <div style={{ marginBottom: 8 }}>
@@ -84,16 +198,46 @@ export default function GameHistoryModal({ history, open, onClose }) {
                           }}>
                             {p}: {game.scores[i]}
                             {game.winnerIdx === i && ' 👑 Winner!'}
+                            {isSoloGame && game.skunkLives !== undefined && (
+                              <span style={{ color: '#ff6b6b', marginLeft: '8px' }}>
+                                (Lives: {game.skunkLives}/6)
+                              </span>
+                            )}
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    {game.goalScore && (
-                      <div style={{ marginBottom: 8, color: "#ccc" }}>
-                        <b>Goal Score:</b> {game.goalScore}
-                      </div>
-                    )}
+                                         {game.goalScore && !isSoloGame && (
+                       <div style={{ marginBottom: 8, color: "#ccc" }}>
+                         <b>Goal Score:</b> {game.goalScore}
+                       </div>
+                     )}
+
+                                         {/* Solo game specific info */}
+                     {isSoloGame && game.skunkLetters && game.skunkLetters.length > 0 && (
+                       <div style={{ marginBottom: 8, color: "#ccc" }}>
+                         <b>SKUNK Letters Earned:</b> {game.skunkLetters.join('')}
+                       </div>
+                     )}
+                     
+                     {/* Highest solo score marker */}
+                     {isSoloGame && game.scores[0] === highestSoloScore && highestSoloScore > 0 && (
+                       <div style={{ 
+                         marginBottom: 8, 
+                         color: "#ffd700", 
+                         fontWeight: "bold",
+                         fontSize: "1.1em",
+                         textAlign: "center",
+                         background: "linear-gradient(45deg, #ffd700, #ffed4e)",
+                         color: "#222",
+                         padding: "8px",
+                         borderRadius: "8px",
+                         border: "2px solid #ffd700"
+                       }}>
+                         🏆 HIGHEST SOLO SCORE! 🏆
+                       </div>
+                     )}
                   </div>
 
                   {/* Detailed View (Expandable) */}
@@ -194,12 +338,21 @@ export default function GameHistoryModal({ history, open, onClose }) {
                             <div style={{ background: '#333', padding: '8px', borderRadius: '4px' }}>
                               <strong>Total Turns:</strong> {game.gameStats.totalTurns}
                             </div>
-                            <div style={{ background: '#333', padding: '8px', borderRadius: '4px' }}>
-                              <strong>Overtime Turns:</strong> {game.gameStats.overtimeTurns}
-                            </div>
-                            <div style={{ background: '#333', padding: '8px', borderRadius: '4px' }}>
-                              <strong>SKUNK'D Turns:</strong> {game.gameStats.skunkdTurns}
-                            </div>
+                            {!isSoloGame && (
+                              <>
+                                <div style={{ background: '#333', padding: '8px', borderRadius: '4px' }}>
+                                  <strong>Overtime Turns:</strong> {game.gameStats.overtimeTurns}
+                                </div>
+                                <div style={{ background: '#333', padding: '8px', borderRadius: '4px' }}>
+                                  <strong>SKUNK'D Turns:</strong> {game.gameStats.skunkdTurns}
+                                </div>
+                              </>
+                            )}
+                            {isSoloGame && game.skunkLives !== undefined && (
+                              <div style={{ background: '#333', padding: '8px', borderRadius: '4px' }}>
+                                <strong>Lives Remaining:</strong> {game.skunkLives}/6
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
@@ -253,14 +406,28 @@ export default function GameHistoryModal({ history, open, onClose }) {
                           const notesText = Array.isArray(game.notes) && game.notes.length > 0
                             ? game.notes.map(note => `  ${new Date(note.timestamp).toLocaleTimeString()}: ${note.text}`).join('\n')
                             : "None";
-                          const shareText = [
-                            `SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
-                            `Goal Score: ${game.goalScore || 'Unknown'}`,
-                            ...game.players.map((p, i) =>
-                              `${p}: ${game.scores[i]}${game.winnerIdx === i ? " 👑 Winner!" : ""}`),
-                            `Total Turns: ${game.gameStats?.totalTurns || 'Unknown'}`,
-                            `Notes:\n${notesText}`
-                          ].join('\n');
+                          
+                          let shareText;
+                          if (isSoloGame) {
+                            shareText = [
+                              `SOLO SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
+                              `Player: ${game.players[0]}`,
+                              `Final Score: ${game.scores[0]}`,
+                              `Lives Remaining: ${game.skunkLives || 0}/6`,
+                              game.skunkLetters && game.skunkLetters.length > 0 ? `SKUNK Letters: ${game.skunkLetters.join('')}` : 'No SKUNK letters earned',
+                              `Total Turns: ${game.gameStats?.totalTurns || 'Unknown'}`,
+                              `Notes:\n${notesText}`
+                            ].join('\n');
+                          } else {
+                            shareText = [
+                              `SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
+                              `Goal Score: ${game.goalScore || 'Unknown'}`,
+                              ...game.players.map((p, i) =>
+                                `${p}: ${game.scores[i]}${game.winnerIdx === i ? " 👑 Winner!" : ""}`),
+                              `Total Turns: ${game.gameStats?.totalTurns || 'Unknown'}`,
+                              `Notes:\n${notesText}`
+                            ].join('\n');
+                          }
                           
                           console.log('Share button clicked, shareText:', shareText);
                           
@@ -300,14 +467,28 @@ export default function GameHistoryModal({ history, open, onClose }) {
                           const notesText = Array.isArray(game.notes) && game.notes.length > 0
                             ? game.notes.map(note => `  ${new Date(note.timestamp).toLocaleTimeString()}: ${note.text}`).join('\n')
                             : "None";
-                          const shareText = [
-                            `SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
-                            `Goal Score: ${game.goalScore || 'Unknown'}`,
-                            ...game.players.map((p, i) =>
-                              `${p}: ${game.scores[i]}${game.winnerIdx === i ? " 👑 Winner!" : ""}`),
-                            `Total Turns: ${game.gameStats?.totalTurns || 'Unknown'}`,
-                            `Notes:\n${notesText}`
-                          ].join('\n');
+                          
+                          let shareText;
+                          if (isSoloGame) {
+                            shareText = [
+                              `SOLO SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
+                              `Player: ${game.players[0]}`,
+                              `Final Score: ${game.scores[0]}`,
+                              `Lives Remaining: ${game.skunkLives || 0}/6`,
+                              game.skunkLetters && game.skunkLetters.length > 0 ? `SKUNK Letters: ${game.skunkLetters.join('')}` : 'No SKUNK letters earned',
+                              `Total Turns: ${game.gameStats?.totalTurns || 'Unknown'}`,
+                              `Notes:\n${notesText}`
+                            ].join('\n');
+                          } else {
+                            shareText = [
+                              `SKUNK'D Game Results (${new Date(game.date).toLocaleString()}):`,
+                              `Goal Score: ${game.goalScore || 'Unknown'}`,
+                              ...game.players.map((p, i) =>
+                                `${p}: ${game.scores[i]}${game.winnerIdx === i ? " 👑 Winner!" : ""}`),
+                              `Total Turns: ${game.gameStats?.totalTurns || 'Unknown'}`,
+                              `Notes:\n${notesText}`
+                            ].join('\n');
+                          }
                           
                           console.log('Copy button clicked, shareText:', shareText);
                           

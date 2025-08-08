@@ -20,7 +20,8 @@ export default function TurnManagerManual({
   players,
   onSaveGame,
   notesHistory,
-  onNotesChange
+  onNotesChange,
+  isSoloMode = false
 }) {
   // State
   const [denPoints, setDenPoints] = useState(0);
@@ -575,22 +576,23 @@ export default function TurnManagerManual({
             </button>
             <button
               onClick={bankPoints}
-              disabled={eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '')}
+              disabled={eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '') || (isSoloMode && denPoints < 1000)}
               style={{
-                background: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '')) ? "#444" : "#8bc34a",
-                color: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '')) ? "#888" : "#fff",
+                background: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '') || (isSoloMode && denPoints < 1000)) ? "#444" : "#8bc34a",
+                color: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '') || (isSoloMode && denPoints < 1000)) ? "#888" : "#fff",
                 fontWeight: "bold",
                 borderRadius: "6px",
                 boxShadow: "0 2px 6px #2223",
                 fontSize: "1.0em",
                 padding: "8px 14px", // Reduced padding
                 border: "none",
-                cursor: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '')) ? "not-allowed" : "pointer",
+                cursor: (eliminated || denPoints === 0 || (manualInput && manualInput.trim() !== '') || (isSoloMode && denPoints < 1000)) ? "not-allowed" : "pointer",
                 transition: "all 0.3s ease"
               }}
               title={
                 denPoints === 0 ? "No points to bank" :
                 (manualInput && manualInput.trim() !== '') ? "Add points to den first" :
+                (isSoloMode && denPoints < 1000) ? "In solo mode, need 1,000+ points to bank" :
                 "Bank your sequence points"
               }
             >

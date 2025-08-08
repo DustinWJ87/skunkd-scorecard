@@ -218,6 +218,14 @@ export default function App() {
   
   // State for tracking if the app has been opened (shows initial screen vs setup/game)
   const [appOpened, setAppOpened] = useState(false);
+  
+  // State for tracking solo mode
+  const [isSoloMode, setIsSoloMode] = useState(false);
+  
+  // Solo mode specific state
+  const [skunkLives, setSkunkLives] = useState(6);
+  const [skunkLetters, setSkunkLetters] = useState([]);
+  const [gameOver, setGameOver] = useState(false);
 
   // Load saved game state on app start
   useEffect(() => {
@@ -260,6 +268,12 @@ export default function App() {
         setDetailedTurns(gameState.detailedTurns || []);
         setCurrentTurnNumber(gameState.currentTurnNumber || 1);
         
+        // Restore solo mode state if it exists
+        setIsSoloMode(gameState.isSoloMode || false);
+        setSkunkLives(gameState.skunkLives || 6);
+        setSkunkLetters(gameState.skunkLetters || []);
+        setGameOver(gameState.gameOver || false);
+        
         // If there's a saved game, automatically open the app
         setAppOpened(true);
       } catch (error) {
@@ -290,13 +304,19 @@ export default function App() {
         notesHistory,
         playerNames,
         detailedTurns,
-        currentTurnNumber
+        currentTurnNumber,
+        // Solo mode state
+        isSoloMode,
+        skunkLives,
+        skunkLetters,
+        gameOver
       };
       localStorage.setItem('skunkd-game-state', JSON.stringify(gameState));
     }
   }, [gameStarted, players, scores, currentPlayerIdx, eliminated, targetScore, 
       electiveRules, winnerIdx, overtime, leaderIdx, leaderScore, turnHistory, 
-      notesHistory, playerNames, detailedTurns, currentTurnNumber]);
+      notesHistory, playerNames, detailedTurns, currentTurnNumber, isSoloMode, 
+      skunkLives, skunkLetters, gameOver]);
 
   /**
    * Creates a deep copy snapshot of the current game state
@@ -428,6 +448,9 @@ export default function App() {
     setEliminated(filteredNames.map(() => false));
     setWinnerIdx(null);
     
+    // Check if this is solo mode (single player)
+    setIsSoloMode(filteredNames.length === 1);
+    
     // Reset detailed turn tracking
     setDetailedTurns([]);
     setCurrentTurnNumber(1);
@@ -528,6 +551,29 @@ export default function App() {
     setDetailedTurns(prev => [...prev, turnData]);
     setCurrentTurnNumber(prev => prev + 1);
     
+    if (isSoloMode) {
+      // Solo mode: lose a life and earn a letter
+      const newLives = skunkLives - 1;
+      setSkunkLives(newLives);
+      
+      // Add the next letter in sequence
+      const letterOrder = ['S', 'K', 'U', 'N', 'K', 'D'];
+      const nextLetter = letterOrder[skunkLetters.length];
+      if (nextLetter) {
+        setSkunkLetters(prev => [...prev, nextLetter]);
+      }
+      
+      // Check if game is over (no more lives)
+      if (newLives <= 0) {
+        setGameOver(true);
+        setWinnerIdx(0); // Set winner to the solo player
+      }
+      
+      // In solo mode, no turn switching - player continues
+      return;
+    }
+    
+    // Multiplayer mode logic
     // In overtime, getting SKUNK'D means elimination (since you scored 0, you can't beat the leader)
     if (overtime) {
       if (!eliminated[currentPlayerIdx]) {
@@ -585,6 +631,12 @@ export default function App() {
     setEliminated([]);
     setWinnerIdx(null);
     
+    // Reset solo mode state
+    setIsSoloMode(false);
+    setSkunkLives(6);
+    setSkunkLetters([]);
+    setGameOver(false);
+    
     // Reset detailed turn tracking
     setDetailedTurns([]);
     setCurrentTurnNumber(1);
@@ -602,25 +654,31 @@ export default function App() {
 
   // Save game to history
   function saveCompletedGame() {
-    const newHistory = [
-      ...gameHistory,
-      {
-        players,
-        scores,
-        notes: notesHistory,
-        date: Date.now(),
-        winnerIdx,
-        // Enhanced data for detailed history
-        goalScore: targetScore,
-        detailedTurns,
-        electiveRules: { ...electiveRules },
-        gameStats: {
-          totalTurns: detailedTurns.length,
-          overtimeTurns: detailedTurns.filter(t => t.inOvertime).length,
-          skunkdTurns: detailedTurns.filter(t => t.wasSkunkd).length
-        }
+    const gameData = {
+      players,
+      scores,
+      notes: notesHistory,
+      date: Date.now(),
+      winnerIdx,
+      // Enhanced data for detailed history
+      goalScore: targetScore,
+      detailedTurns,
+      electiveRules: { ...electiveRules },
+      gameStats: {
+        totalTurns: detailedTurns.length,
+        overtimeTurns: detailedTurns.filter(t => t.inOvertime).length,
+        skunkdTurns: detailedTurns.filter(t => t.wasSkunkd).length
       }
-    ];
+    };
+
+    // Add solo mode specific data if it's a solo game
+    if (isSoloMode) {
+      gameData.skunkLives = skunkLives;
+      gameData.skunkLetters = skunkLetters;
+      gameData.gameOver = gameOver;
+    }
+
+    const newHistory = [...gameHistory, gameData];
     setGameHistory(newHistory);
     saveGameHistory(newHistory);
   }
@@ -635,6 +693,16 @@ export default function App() {
 
   // Get array of active rules for display
   const activeRules = ELECTIVE_RULES.filter(r => electiveRules[r.key]);
+  
+  // Function to get solo score category
+  function getSoloScoreCategory(score) {
+    if (score === 0) return { category: "STUMP'D", color: "#888" };
+    if (score >= 50 && score <= 4950) return { category: "Stinker SKUNK", color: "#ff6b6b" };
+    if (score > 5000 && score <= 9999) return { category: "Slick SKUNK", color: "#4ecdc4" };
+    if (score >= 10000 && score <= 19999) return { category: "Superior SKUNK", color: "#45b7d1" };
+    if (score >= 20000) return { category: "Scent-sational SKUNK", color: "#ffd700" };
+    return { category: "No Category", color: "#888" };
+  }
 
   return (
     <div style={{ maxWidth: 660, margin: '0 auto', padding: 20, backgroundColor: '#111', color: '#fff' }}>
@@ -684,11 +752,16 @@ export default function App() {
         </div>
       )}
       
-      <GameHistoryModal
-        history={gameHistory}
-        open={showHistory}
-        onClose={() => setShowHistory(false)}
-      />
+             <GameHistoryModal
+         history={gameHistory}
+         open={showHistory}
+         onClose={() => setShowHistory(false)}
+         onDeleteGame={(gameIdx) => {
+           const newHistory = gameHistory.filter((_, idx) => idx !== gameIdx);
+           setGameHistory(newHistory);
+           saveGameHistory(newHistory);
+         }}
+       />
       {!appOpened ? (
         // Initial welcome screen
         <div style={{ 
@@ -906,75 +979,215 @@ export default function App() {
             Start Game
           </button>
         </div>
-      ) : (
-        <div>
-          {/* Active Rule Cards */}
-          {activeRules.length > 0 && (
-            <div style={{ margin: '16px 0', background: '#222', padding: 12, borderRadius: 10 }}>
-              <h3>Active Rules:</h3>
-              <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
-                {activeRules.map(rule => (
-                  <div key={rule.key} style={{ textAlign: 'center' }}>
-                    {rule.img && (
-                      <img src={rule.img} alt={rule.label} style={{ height: 80, marginBottom: 6 }} />
-                    )}
-                    <div style={{ color: '#ffd700', fontWeight: 'bold' }}>{rule.label}</div>
-                    <div style={{ fontSize: 12, color: '#aaa' }}>{rule.description}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          <h2>Scores</h2>
-          <ul>
-            {players.map((name, idx) => (
-              <li key={idx} style={{
-                color:
-                  winnerIdx === idx ? "#ffd700"
-                  : eliminated[idx] ? "#888"
-                  : leaderIdx === idx && overtime ? "#00ffea"
-                  : "#fff",
-                fontWeight: winnerIdx === idx ? "bold" : leaderIdx === idx ? "bold" : "normal",
-                fontSize: "18px"
-              }}>
-                {name}: {scores[idx]}
-                {idx === currentPlayerIdx && ' ← Current'}
-                {winnerIdx === idx && ' 👑 Winner!'}
-                {eliminated[idx] && overtime && ' (Eliminated)'}
-                {leaderIdx === idx && overtime && ' (Leader)'}
-              </li>
-            ))}
-          </ul>
-          
-          {winnerIdx === null ? (
-            <>
-              <TurnManagerManual
-                playerName={players[currentPlayerIdx]}
-                eliminated={eliminated[currentPlayerIdx]}
-                leaderScore={leaderScore}
-                playerScore={scores[currentPlayerIdx]}
-                overtime={overtime}
-                onScoreBoard={handleBankPoints}
-                onSkunkTurn={handleSkunkTurn}
-                onEndTurn={() => setCurrentPlayerIdx(getNextActivePlayerIdx(currentPlayerIdx, eliminated))}
-                winnerIdx={winnerIdx}
-                scores={scores}
-                players={players}
-                onSaveGame={saveCompletedGame}
-                notesHistory={notesHistory}
-                onNotesChange={handleNotesChange}
-                // Pass global undo info (no longer used in TurnManager but keeping for reference)
-                globalUndoAvailable={undoHistory.length > 0}
-                onGlobalUndo={handleGlobalUndo}
-              />
-            </>
-          ) : (
-            <div>
-              <h2>Game Over! Winner: {players[winnerIdx]}</h2>
-              <button onClick={() => setShowResetConfirm(true)}>New Game</button>
-            </div>
-          )}
+             ) : (
+         <div>
+           {/* Active Rule Cards */}
+           {activeRules.length > 0 && (
+             <div style={{ margin: '16px 0', background: '#222', padding: 12, borderRadius: 10 }}>
+               <h3>Active Rules:</h3>
+               <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+                 {activeRules.map(rule => (
+                   <div key={rule.key} style={{ textAlign: 'center' }}>
+                     {rule.img && (
+                       <img src={rule.img} alt={rule.label} style={{ height: 80, marginBottom: 6 }} />
+                     )}
+                     <div style={{ color: '#ffd700', fontWeight: 'bold' }}>{rule.label}</div>
+                     <div style={{ fontSize: 12, color: '#aaa' }}>{rule.description}</div>
+                   </div>
+                 ))}
+               </div>
+             </div>
+           )}
+           
+           {isSoloMode ? (
+             // SOLO SKUNK'D Layout
+             <div>
+               <div style={{ 
+                 background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)',
+                 borderRadius: '16px',
+                 border: '2px solid #ffd700',
+                 padding: '20px',
+                 marginBottom: '20px'
+               }}>
+                 <h2 style={{ 
+                   textAlign: 'center', 
+                   color: '#ffd700', 
+                   marginBottom: '20px',
+                   fontSize: '2em'
+                 }}>
+                   🦨 SOLO SKUNK'D
+                 </h2>
+                 
+                 <div style={{ 
+                   display: 'flex', 
+                   justifyContent: 'space-between', 
+                   alignItems: 'center',
+                   marginBottom: '20px'
+                 }}>
+                   <div>
+                     <h3 style={{ color: '#ffd700', marginBottom: '10px' }}>Player: {players[0]}</h3>
+                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff' }}>
+                       Score: {scores[0].toLocaleString()}
+                     </div>
+                     {scores[0] > 0 && (
+                       <div style={{ 
+                         color: getSoloScoreCategory(scores[0]).color, 
+                         fontWeight: 'bold',
+                         fontSize: '18px'
+                       }}>
+                         {getSoloScoreCategory(scores[0]).category}
+                       </div>
+                     )}
+                   </div>
+                   
+                   <div style={{ textAlign: 'center' }}>
+                     <div style={{ fontSize: '20px', color: '#ffd700', marginBottom: '10px' }}>
+                       SKUNK Lives: {skunkLives}/6
+                     </div>
+                     <div style={{ 
+                       display: 'flex', 
+                       gap: '5px', 
+                       justifyContent: 'center',
+                       marginBottom: '10px'
+                     }}>
+                       {['S', 'K', 'U', 'N', 'K', 'D'].map((letter, idx) => (
+                         <div key={idx} style={{
+                           width: '30px',
+                           height: '30px',
+                           border: '2px solid #ffd700',
+                           borderRadius: '50%',
+                           display: 'flex',
+                           alignItems: 'center',
+                           justifyContent: 'center',
+                           fontWeight: 'bold',
+                           fontSize: '16px',
+                           backgroundColor: idx < skunkLetters.length ? '#ffd700' : 'transparent',
+                           color: idx < skunkLetters.length ? '#222' : '#ffd700'
+                         }}>
+                           {letter}
+                         </div>
+                       ))}
+                     </div>
+                     <div style={{ fontSize: '14px', color: '#ccc' }}>
+                       {skunkLetters.length > 0 ? `Letters: ${skunkLetters.join('')}` : 'No letters yet'}
+                     </div>
+                   </div>
+                 </div>
+                 
+                 {gameOver ? (
+                   <div style={{ 
+                     textAlign: 'center', 
+                     padding: '20px',
+                     background: '#dc3545',
+                     borderRadius: '10px',
+                     marginBottom: '20px'
+                   }}>
+                     <h3 style={{ color: '#fff', marginBottom: '10px' }}>Game Over!</h3>
+                     <div style={{ fontSize: '18px', color: '#fff' }}>
+                       Final Score: {scores[0].toLocaleString()}
+                     </div>
+                     <div style={{ 
+                       color: getSoloScoreCategory(scores[0]).color, 
+                       fontWeight: 'bold',
+                       fontSize: '16px',
+                       marginTop: '10px'
+                     }}>
+                       {getSoloScoreCategory(scores[0]).category}
+                     </div>
+                     <button 
+                       onClick={() => setShowResetConfirm(true)}
+                       style={{
+                         background: '#ffd700',
+                         color: '#222',
+                         border: 'none',
+                         borderRadius: '8px',
+                         padding: '10px 20px',
+                         marginTop: '15px',
+                         fontWeight: 'bold',
+                         cursor: 'pointer'
+                       }}
+                     >
+                       New Game
+                     </button>
+                   </div>
+                 ) : (
+                   <TurnManagerManual
+                     playerName={players[0]}
+                     eliminated={false}
+                     leaderScore={null}
+                     playerScore={scores[0]}
+                     overtime={false}
+                     onScoreBoard={handleBankPoints}
+                     onSkunkTurn={handleSkunkTurn}
+                     onEndTurn={() => {}} // No turn switching in solo mode
+                     winnerIdx={null}
+                     scores={scores}
+                     players={players}
+                     onSaveGame={saveCompletedGame}
+                     notesHistory={notesHistory}
+                     onNotesChange={handleNotesChange}
+                     globalUndoAvailable={undoHistory.length > 0}
+                     onGlobalUndo={handleGlobalUndo}
+                     isSoloMode={true}
+                   />
+                 )}
+               </div>
+             </div>
+           ) : (
+             // MULTIPLAYER Layout
+             <>
+               <h2>Scores</h2>
+               <ul>
+                 {players.map((name, idx) => (
+                   <li key={idx} style={{
+                     color:
+                       winnerIdx === idx ? "#ffd700"
+                       : eliminated[idx] ? "#888"
+                       : leaderIdx === idx && overtime ? "#00ffea"
+                       : "#fff",
+                     fontWeight: winnerIdx === idx ? "bold" : leaderIdx === idx ? "bold" : "normal",
+                     fontSize: "18px"
+                   }}>
+                     {name}: {scores[idx]}
+                     {idx === currentPlayerIdx && ' ← Current'}
+                     {winnerIdx === idx && ' 👑 Winner!'}
+                     {eliminated[idx] && overtime && ' (Eliminated)'}
+                     {leaderIdx === idx && overtime && ' (Leader)'}
+                   </li>
+                 ))}
+               </ul>
+               
+               {winnerIdx === null ? (
+                 <>
+                   <TurnManagerManual
+                     playerName={players[currentPlayerIdx]}
+                     eliminated={eliminated[currentPlayerIdx]}
+                     leaderScore={leaderScore}
+                     playerScore={scores[currentPlayerIdx]}
+                     overtime={overtime}
+                     onScoreBoard={handleBankPoints}
+                     onSkunkTurn={handleSkunkTurn}
+                     onEndTurn={() => setCurrentPlayerIdx(getNextActivePlayerIdx(currentPlayerIdx, eliminated))}
+                     winnerIdx={winnerIdx}
+                     scores={scores}
+                     players={players}
+                     onSaveGame={saveCompletedGame}
+                     notesHistory={notesHistory}
+                     onNotesChange={handleNotesChange}
+                     // Pass global undo info (no longer used in TurnManager but keeping for reference)
+                     globalUndoAvailable={undoHistory.length > 0}
+                     onGlobalUndo={handleGlobalUndo}
+                     isSoloMode={false}
+                   />
+                 </>
+               ) : (
+                 <div>
+                   <h2>Game Over! Winner: {players[winnerIdx]}</h2>
+                   <button onClick={() => setShowResetConfirm(true)}>New Game</button>
+                 </div>
+               )}
+             </>
+           )}
           <br />
           <button 
             onClick={handleUndoLastTurnClick}
