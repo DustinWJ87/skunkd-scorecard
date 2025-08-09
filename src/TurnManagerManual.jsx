@@ -48,21 +48,11 @@ export default function TurnManagerManual({
 
   // Handle responsive notes collapse - only collapse on initial load for mobile
   useEffect(() => {
-    const handleResize = () => {
-      // Only auto-collapse on initial load, not on every resize
-      if (window.innerWidth < 768 && !isNotesCollapsed) {
-        setIsNotesCollapsed(true);
-      }
-    };
-    
-    // Set initial state based on screen size
+    // Set initial state based on screen size only on mount
     if (window.innerWidth < 768) {
       setIsNotesCollapsed(true);
     }
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isNotesCollapsed]);
+  }, []); // Empty dependency array - only run on mount
 
   // Add a note to the notes array
   function addNote() {
