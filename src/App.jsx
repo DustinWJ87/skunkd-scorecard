@@ -23,7 +23,7 @@ const ELECTIVE_RULES = [
   {
     key: "countdown",
     label: "Countdown",
-    description: "Before rolling for the last time, a player must announce “Countdown”. They must then roll a 6, 5, 4, 3, 2, (skunk’d) in consecutive rolls, keeping one die per roll. If successful that player instantly WINS the game!",
+    description: "Before rolling for the last time, a player must announce “Countdown”. They must then roll a 6, 5, 4, 3, 2, (skunk) in consecutive rolls, keeping one die per roll. If successful that player instantly WINS the game!",
     img: countdownCard
   },
   {
@@ -35,7 +35,7 @@ const ELECTIVE_RULES = [
   {
     key: "megaPlus",
     label: "Mega+",
-    description: "Mega rules apply to 5‘s and (skunk’d)‘s (in addition to 2’s, 3’s, 4’s, & 6’s). Additional 5‘s are worth 500 and additional (skunk’d)‘s are worth 1,000. Mega doubling also applies.",
+    description: "Mega rules apply to 5‘s and (skunk)‘s (in addition to 2’s, 3’s, 4’s, & 6’s). Additional 5‘s are worth 500 and additional (skunk)‘s are worth 1,000. Mega doubling also applies.",
     img: megaPlusCard
   },
   {
@@ -59,7 +59,7 @@ const ELECTIVE_RULES = [
   {
     key: "slowBoat",
     label: "Slow Boat",
-    description: "When a player rolls six (skunk’d)‘s or 5’s, one at a time, they receive 5 times the value of the six dice. Ex. Four 5’s and Two (skunk’d)‘s = 400 pts. times 5 for a total of 2,000 pts.!",
+    description: "When a player rolls six (skunk)‘s or 5’s, one at a time, they receive 5 times the value of the six dice. Ex. Four 5’s and Two (skunk)‘s = 400 pts. times 5 for a total of 2,000 pts.!",
     img: slowBoatCard
   },
   {
