@@ -23,19 +23,19 @@ const ELECTIVE_RULES = [
   {
     key: "countdown",
     label: "Countdown",
-    description: "Before rolling for the last time, a player must announce “Countdown”. They must then roll a 6, 5, 4, 3, 2, (skunk) in consecutive rolls, keeping one die per roll. If successful that player instantly WINS the game!",
+    description: "Before rolling for the last time, a player must announce 'Countdown'. They must then roll a 6, 5, 4, 3, 2, (skunk'd) in consecutive rolls, keeping one die per roll. If successful that player instantly WINS the game!",
     img: countdownCard
   },
   {
     key: "extreme",
     label: "Extreme",
-    description: "All players on their turn may continue rolling until they have SKUNK’D, and still move all points from their den onto the board! No min. to get on the board!",
+    description: "All players on their turn may continue rolling until they have SKUNK'D, and still move all points from their den onto the board! No min. to get on the board!",
     img: extremeCard
   },
   {
     key: "megaPlus",
     label: "Mega+",
-    description: "Mega rules apply to 5‘s and (skunk)‘s (in addition to 2’s, 3’s, 4’s, & 6’s). Additional 5‘s are worth 500 and additional (skunk)‘s are worth 1,000. Mega doubling also applies.",
+    description: "Mega rules apply to 5's and (skunk'd)'s (in addition to 2's, 3's, 4's, & 6's). Additional 5's are worth 500 and additional (skunk'd)'s are worth 1,000. Mega doubling also applies.",
     img: megaPlusCard
   },
   {
@@ -53,31 +53,31 @@ const ELECTIVE_RULES = [
   {
     key: "sixTwoEven",
     label: "Six, Two, & Even",
-    description: "On any given roll a player may change any 6’s to 2’s or any 2’s to 6’s. Each player may use this rule once per game.",
+    description: "On any given roll a player may change any 6's to 2's or any 2's to 6's. Each player may use this rule once per game.",
     img: sixTwoEvenCard
   },
   {
     key: "slowBoat",
     label: "Slow Boat",
-    description: "When a player rolls six (skunk)‘s or 5’s, one at a time, they receive 5 times the value of the six dice. Ex. Four 5’s and Two (skunk)‘s = 400 pts. times 5 for a total of 2,000 pts.!",
+    description: "When a player rolls six (skunk'd)'s or 5's, one at a time, they receive 5 times the value of the six dice. Ex. Four 5's and Two (skunk'd)'s = 400 pts. times 5 for a total of 2,000 pts.!",
     img: slowBoatCard
   },
   {
     key: "stripesPlus",
     label: "Stripes+",
-    description: "When a player rolls Stripes (3 pairs) that are numerically consecutive, such as 3’s, 4’s, & 5’s, they get 3,000 points instead of 1,000!",
+    description: "When a player rolls Stripes (3 pairs) that are numerically consecutive, such as 3's, 4's, & 5's, they get 3,000 points instead of 1,000!",
     img: stripesPlusCard
   },
   {
     key: "stinkySuperSkunkd",
-    label: "Stinky Super SKUNK’D",
-    description: "When a player has Super SKUNK’D (rolled 6 dice with none scoring) the player’s score on the board resets to ZERO!",
+    label: "Stinky Super SKUNK'D",
+    description: "When a player has Super SKUNK'D (rolled 6 dice with none scoring) the player's score on the board resets to ZERO!",
     img: stinkySuperSkunkdCard
   },
   {
     key: "singleCinco",
     label: "Single Cinco",
-    description: "When a player rolls six 5’s, one at a time, they receive a score of 3,000 points!",
+    description: "When a player rolls six 5's, one at a time, they receive a score of 3,000 points!",
     img: singleCincoCard
   }
 ];
@@ -111,71 +111,17 @@ function loadGameHistory() {
   }
 }
 
-// Save to localStorage
-function saveGameHistory(history) {
-  localStorage.setItem('skunkdGameHistory', JSON.stringify(history));
-}
-
-// Add demo data for testing (only if no history exists)
+// Minimal demo data helper (keeps build stable)
 function addDemoData() {
-  const existingHistory = loadGameHistory();
-  if (existingHistory.length === 0) {
-    const demoGame = {
-      players: ['Alice', 'Bob', 'Charlie'],
-      scores: [12450, 8900, 6500],
-      notes: [
-        { text: 'Alice got lucky with a double mega!', timestamp: Date.now() - 1000000 },
-        { text: 'Bob was skunk\'d three times', timestamp: Date.now() - 500000 },
-        { text: 'Great game everyone!', timestamp: Date.now() - 100000 }
-      ],
-      date: Date.now() - 3600000, // 1 hour ago
-      winnerIdx: 0,
-      goalScore: 10000,
-      detailedTurns: [
-        { turnNumber: 1, playerIdx: 0, playerName: 'Alice', pointsBanked: 400, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3600000 },
-        { turnNumber: 2, playerIdx: 1, playerName: 'Bob', pointsBanked: 200, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3590000 },
-        { turnNumber: 3, playerIdx: 2, playerName: 'Charlie', pointsBanked: 300, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3580000 },
-        { turnNumber: 4, playerIdx: 0, playerName: 'Alice', pointsBanked: 0, wasSkunkd: true, inOvertime: false, timestamp: Date.now() - 3570000 },
-        { turnNumber: 5, playerIdx: 1, playerName: 'Bob', pointsBanked: 0, wasSkunkd: true, inOvertime: false, timestamp: Date.now() - 3560000 },
-        { turnNumber: 6, playerIdx: 2, playerName: 'Charlie', pointsBanked: 1500, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3550000 },
-        { turnNumber: 7, playerIdx: 0, playerName: 'Alice', pointsBanked: 2800, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3540000 },
-        { turnNumber: 8, playerIdx: 1, playerName: 'Bob', pointsBanked: 1200, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3530000 },
-        { turnNumber: 9, playerIdx: 2, playerName: 'Charlie', pointsBanked: 800, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3520000 },
-        { turnNumber: 10, playerIdx: 0, playerName: 'Alice', pointsBanked: 9250, wasSkunkd: false, inOvertime: false, timestamp: Date.now() - 3510000 },
-        // Overtime starts here
-        { turnNumber: 11, playerIdx: 1, playerName: 'Bob', pointsBanked: 1200, wasSkunkd: false, inOvertime: true, timestamp: Date.now() - 3500000 },
-        { turnNumber: 12, playerIdx: 2, playerName: 'Charlie', pointsBanked: 0, wasSkunkd: true, inOvertime: true, timestamp: Date.now() - 3490000 },
-        { turnNumber: 13, playerIdx: 0, playerName: 'Alice', pointsBanked: 0, wasSkunkd: true, inOvertime: true, timestamp: Date.now() - 3480000 },
-        { turnNumber: 14, playerIdx: 1, playerName: 'Bob', pointsBanked: 2300, wasSkunkd: false, inOvertime: true, timestamp: Date.now() - 3470000 },
-        { turnNumber: 15, playerIdx: 2, playerName: 'Charlie', pointsBanked: 1600, wasSkunkd: false, inOvertime: true, timestamp: Date.now() - 3460000 },
-        { turnNumber: 16, playerIdx: 0, playerName: 'Alice', pointsBanked: 0, wasSkunkd: true, inOvertime: true, timestamp: Date.now() - 3450000 },
-        { turnNumber: 17, playerIdx: 1, playerName: 'Bob', pointsBanked: 4200, wasSkunkd: false, inOvertime: true, timestamp: Date.now() - 3440000 },
-        { turnNumber: 18, playerIdx: 2, playerName: 'Charlie', pointsBanked: 2300, wasSkunkd: false, inOvertime: true, timestamp: Date.now() - 3430000 }
-      ],
-      electiveRules: {
-        countdown: false,
-        extreme: true,
-        megaPlus: false,
-        mulligan: true,
-        pungent: false,
-        sixTwoEven: false,
-        slowBoat: false,
-        stripesPlus: false,
-        stinkySuperSkunkd: false,
-        singleCinco: false
-      },
-      gameStats: {
-        totalTurns: 18,
-        overtimeTurns: 8,
-        skunkdTurns: 6
-      }
-    };
-    
-    saveGameHistory([demoGame]);
-    return [demoGame];
+  try {
+    const existing = loadGameHistory();
+    if (existing && existing.length) return existing;
+    return [];
+  } catch {
+    return [];
   }
-  return existingHistory;
 }
+// (end of demo helper)
 
 export default function App() {
   const [players, setPlayers] = useState([]);
@@ -200,6 +146,7 @@ export default function App() {
   const [gameHistory, setGameHistory] = useState(addDemoData());
   const [showHistory, setShowHistory] = useState(false);
   const [turnHistory, setTurnHistory] = useState([]);
+  const [potentialDenPoints, setPotentialDenPoints] = useState(0);
   const [showUndoConfirm, setShowUndoConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   
@@ -652,6 +599,35 @@ export default function App() {
     setAppOpened(false);
   }
 
+  // Open the new-game setup UI (reset game state but keep the setup screen open)
+  function openNewGameSetup() {
+    setPlayers([]);
+    setPlayerNames(['']);
+    setScores([]);
+    setCurrentPlayerIdx(0);
+    setGameStarted(false);
+    setElectiveRules(ELECTIVE_RULES.reduce((acc, rule) => {
+      acc[rule.key] = false;
+      return acc;
+    }, {}));
+    setTargetScore(10000);
+    setOvertime(false);
+    setLeaderIdx(null);
+    setLeaderScore(null);
+    setEliminated([]);
+    setWinnerIdx(null);
+    setIsSoloMode(false);
+    setSkunkLives(6);
+    setSkunkLetters([]);
+    setGameOver(false);
+    setDetailedTurns([]);
+    setCurrentTurnNumber(1);
+    setNotesHistory([]);
+    setHasSavedGame(false);
+    // Ensure the app shows the setup screen
+    setAppOpened(true);
+  }
+
   // Save game to history
   function saveCompletedGame() {
     const gameData = {
@@ -733,6 +709,25 @@ export default function App() {
            onClick={() => setShowHistory(true)}
          >
            View Past Games
+         </button>
+
+         <button
+           style={{
+             background: "transparent",
+             color: "#ffd700",
+             borderRadius: 8,
+             padding: "8px 14px",
+             border: "1px solid #ffd700",
+             fontWeight: "bold",
+             cursor: "pointer"
+           }}
+           onClick={() => {
+             if (!confirm('Start a new game? This will clear the current setup and any in-progress game. Continue?')) return;
+             openNewGameSetup();
+           }}
+           title="Start a new game (open setup)"
+         >
+           ➕ Start New Game
          </button>
        </div>
       
@@ -1148,11 +1143,11 @@ export default function App() {
                      fontWeight: winnerIdx === idx ? "bold" : leaderIdx === idx ? "bold" : "normal",
                      fontSize: "18px"
                    }}>
-                     {name}: {scores[idx]}
-                     {idx === currentPlayerIdx && ' ← Current'}
-                     {winnerIdx === idx && ' 👑 Winner!'}
-                     {eliminated[idx] && overtime && ' (Eliminated)'}
-                     {leaderIdx === idx && overtime && ' (Leader)'}
+                    {name}: {scores[idx]}
+                    {idx === currentPlayerIdx && ' ← Current'}
+                    {winnerIdx === idx && ' 👑 Winner!'}
+                    {eliminated[idx] && overtime && ' (Eliminated)'}
+                    {leaderIdx === idx && overtime && ' (Leader)'}
                    </li>
                  ))}
                </ul>
@@ -1178,6 +1173,7 @@ export default function App() {
                      globalUndoAvailable={undoHistory.length > 0}
                      onGlobalUndo={handleGlobalUndo}
                      isSoloMode={false}
+                     setDenPointsForScoreboard={val => setPotentialDenPoints(val)}
                    />
                  </>
                ) : (
@@ -1209,31 +1205,6 @@ export default function App() {
           >
             🔄 Undo Last Turn
           </button>
-          <button onClick={() => setShowResetConfirm(true)} style={{ marginTop: 16 }}>Reset Game</button>
-          
-          {/* Confirmation Dialog for Undo Last Turn */}
-          {showUndoConfirm && (
-            <div className="confirm-dialog-overlay">
-              <div className="confirm-dialog">
-                <h3>⚠️ Confirm Undo</h3>
-                <p>Are you sure you want to undo the last turn? This action will revert the game state to before the last player's turn was completed.</p>
-                <div className="confirm-dialog-buttons">
-                  <button 
-                    className="confirm-yes"
-                    onClick={undoLastTurn}
-                  >
-                    Yes, Undo
-                  </button>
-                  <button 
-                    className="confirm-no"
-                    onClick={() => setShowUndoConfirm(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
           
           {/* Confirmation Dialog for Reset Game */}
           {showResetConfirm && (
@@ -1265,4 +1236,31 @@ export default function App() {
       )}
     </div>
   );
+}
+
+function saveGameHistory(history) {
+  try {
+    // If caller passed the full history array, persist it directly
+    if (Array.isArray(history)) {
+      setGameHistory(history);
+      try {
+        localStorage.setItem('skunkdGameHistory', JSON.stringify(history));
+      } catch (e) {
+        console.warn('Failed to persist game history to localStorage:', e);
+      }
+      return;
+    }
+
+    // Otherwise treat the argument as a single game object and prepend it
+    const existing = loadGameHistory() || [];
+    const next = [history, ...existing];
+    setGameHistory(next);
+    try {
+      localStorage.setItem('skunkdGameHistory', JSON.stringify(next));
+    } catch (e) {
+      console.warn('Failed to persist game history to localStorage:', e);
+    }
+  } catch (err) {
+    console.error('saveGameHistory error:', err);
+  }
 }

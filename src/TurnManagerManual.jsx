@@ -21,10 +21,17 @@ export default function TurnManagerManual({
   onSaveGame,
   notesHistory,
   onNotesChange,
-  isSoloMode = false
+  isSoloMode = false,
+  setDenPointsForScoreboard
 }) {
   // State
   const [denPoints, setDenPoints] = useState(0);
+  // Report denPoints to parent for scoreboard display
+  useEffect(() => {
+    if (typeof setDenPointsForScoreboard === 'function') {
+      setDenPointsForScoreboard(denPoints);
+    }
+  }, [denPoints, setDenPointsForScoreboard]);
   const [message, setMessage] = useState('');
   const [manualInput, setManualInput] = useState('');
   const [currentNote, setCurrentNote] = useState('');
@@ -84,13 +91,24 @@ export default function TurnManagerManual({
   }
 
   function undoBankedAction() {
-    if (turnActions.length === 0) return;
-    
+    if (turnActions.length === 0) {
+      setMessage("Nothing to undo.");
+      return;
+    }
     const lastAction = turnActions[turnActions.length - 1];
     if (lastAction.type === 'addPoints') {
-      setDenPoints(prev => prev - lastAction.points);
+      setDenPoints(prev => {
+        const newVal = prev - lastAction.points;
+        if (newVal < 0) {
+          setMessage("Can't undo below zero points!");
+          return 0;
+        }
+        setMessage(`Undid adding ${lastAction.points} points!`);
+        return newVal;
+      });
       setTurnActions(prev => prev.slice(0, -1));
-      setMessage(`Undid adding ${lastAction.points} points!`);
+    } else {
+      setMessage("Nothing to undo.");
     }
   }
 
@@ -111,6 +129,7 @@ export default function TurnManagerManual({
   }
 
   // Two-column responsive layout styles (more mobile-friendly)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const containerStyle = {
     background: 'linear-gradient(135deg, #111 70%, #1e1e1e 100%)',
     backgroundImage: `url(${cardBack})`,
@@ -118,15 +137,15 @@ export default function TurnManagerManual({
     backgroundRepeat: 'no-repeat',
     borderRadius: '20px',
     boxShadow: '0 6px 32px #0006',
-    padding: '20px 16px',
-    maxWidth: '900px', // Reduced from 1200px
-    margin: '20px auto',
+    padding: isMobile ? '12px 4px' : '20px 16px',
+    maxWidth: '900px',
+    margin: isMobile ? '8px auto' : '20px auto',
     position: 'relative',
     color: '#fff',
     fontFamily: 'Quicksand, Nunito, Arial, sans-serif',
     display: 'flex',
     flexWrap: 'wrap',
-    gap: '16px'
+    gap: isMobile ? '8px' : '16px'
   };
 
   const leftColumnStyle = {
@@ -452,39 +471,47 @@ export default function TurnManagerManual({
         </h2>
 
         <div style={{ marginBottom: 18 }}>
-          <span style={{
-            fontWeight: "bold",
-            fontSize: "1.3em",
-            background: "linear-gradient(90deg, #ffd700 90%, #fffbe5 100%)",
-            color: "#222",
-            borderRadius: "8px",
-            padding: "6px 18px",
-            boxShadow: "0 2px 8px #2224",
-            marginRight: 12
-          }}>
-            Den Points: {denPoints}
-          </span>
-          {overtime && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <span style={{
-              marginLeft: 8,
-              padding: "5px 5px",
-              background: "#ffc107",
-              color: "#222",
-              borderRadius: "7px",
               fontWeight: "bold",
-              boxShadow: "0 2px 7px #2223"
+              fontSize: "1.3em",
+              background: "linear-gradient(90deg, #ffd700 90%, #fffbe5 100%)",
+              color: "#222",
+              borderRadius: "8px",
+              padding: "6px 18px",
+              boxShadow: "0 2px 8px #2224"
             }}>
-              Score to Beat: {leaderScore}
-              {scoreNeeded !== null &&
-                <span style={{
-                  color: "#d32f2f",
-                  marginLeft: 14,
-                  fontWeight: "bold"
-                }}>
-                  Points Needed: {scoreNeeded}
-                </span>
-              }
+              Den Points: {denPoints}
             </span>
+
+            {/* Don't show potential total during overtime — show only in normal play */}
+            {!overtime && denPoints > 0 && typeof playerScore === 'number' && (
+              <span style={{ color: '#ffd700', fontWeight: 'bold' }}>
+                Potential: { (playerScore + denPoints).toLocaleString() }
+              </span>
+            )}
+          </div>
+
+          {/* Overtime info rendered on its own line to avoid wrapping issues */}
+          {overtime && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{
+                padding: "6px 10px",
+                background: "#ffc107",
+                color: "#222",
+                borderRadius: "7px",
+                fontWeight: "bold",
+                boxShadow: "0 2px 7px #2223",
+                display: 'inline-block'
+              }}>
+                Score to Beat: {leaderScore}
+                {scoreNeeded !== null && (
+                  <span style={{ color: "#d32f2f", marginLeft: 12, fontWeight: "bold" }}>
+                    Points Needed: {scoreNeeded}
+                  </span>
+                )}
+              </div>
+            </div>
           )}
         </div>
 
@@ -517,13 +544,16 @@ export default function TurnManagerManual({
 
         {/* Controls */}
         {typeof winnerIdx !== 'number' ? (
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px", // Reduced gap
-            flexWrap: "wrap",
-            marginBottom: "12px" // Reduced margin
-          }}>
+          <div
+            style={{
+              display: isMobile ? "grid" : "flex",
+              alignItems: "center",
+              gap: isMobile ? "10px" : "12px",
+              flexWrap: isMobile ? undefined : "wrap",
+              marginBottom: isMobile ? "18px" : "12px",
+              gridTemplateColumns: isMobile ? "1fr" : undefined
+            }}
+          >
             <input
               type="number"
               min="1"
