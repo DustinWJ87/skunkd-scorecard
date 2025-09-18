@@ -649,7 +649,7 @@ export default function TurnManagerManual({
               disabled={eliminated}
               title="Mark turn as SKUNK'D (no points banked)"
             >
-              😶‍🌫️ SKUNK'D
+              🦨 SKUNK'D
             </button>
           </div>
         ) : null}

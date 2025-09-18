@@ -699,37 +699,40 @@ export default function App() {
           }} 
         />
       </div>
-             <div style={{ marginBottom: 12 }}>
-         <button
-           style={{
-             background: "#ffd700", color: "#222", borderRadius: 8,
-             padding: "8px 14px", border: "none", fontWeight: "bold",
-             cursor: "pointer", marginRight: 10
-           }}
-           onClick={() => setShowHistory(true)}
-         >
-           View Past Games
-         </button>
-
-         <button
-           style={{
-             background: "transparent",
-             color: "#ffd700",
-             borderRadius: 8,
-             padding: "8px 14px",
-             border: "1px solid #ffd700",
-             fontWeight: "bold",
-             cursor: "pointer"
-           }}
-           onClick={() => {
-             if (!confirm('Start a new game? This will clear the current setup and any in-progress game. Continue?')) return;
-             openNewGameSetup();
-           }}
-           title="Start a new game (open setup)"
-         >
-           ➕ Start New Game
-         </button>
-       </div>
+      
+      {/* Only show Start New Game button after app is opened */}
+      {appOpened && (
+        <div style={{ marginBottom: 12 }}>
+          <button
+            style={{
+              background: "#ffd700", color: "#222", borderRadius: 8,
+              padding: "8px 14px", border: "none", fontWeight: "bold",
+              cursor: "pointer", marginRight: 10
+            }}
+            onClick={() => setShowHistory(true)}
+          >
+            View Past Games
+          </button>
+          <button
+            style={{
+              background: "transparent",
+              color: "#ffd700",
+              borderRadius: 8,
+              padding: "8px 14px",
+              border: "1px solid #ffd700",
+              fontWeight: "bold",
+              cursor: "pointer"
+            }}
+            onClick={() => {
+              if (!confirm('Start a new game? This will clear the current setup and any in-progress game. Continue?')) return;
+              openNewGameSetup();
+            }}
+            title="Start a new game (open setup)"
+          >
+            ➕ Start New Game
+          </button>
+        </div>
+      )}
       
       {/* Show "Game Resumed" indicator if applicable */}
       {hasSavedGame && gameStarted && (
