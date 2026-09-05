@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 export default function GameHistoryModal({ history, open, onClose, onDeleteGame }) {
   const [expandedGames, setExpandedGames] = useState(new Set());
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'multiplayer', 'solo'
+  const [deletingGameIdx, setDeletingGameIdx] = useState(null);
 
   const toggleGameExpansion = (gameIdx) => {
     const newExpanded = new Set(expandedGames);
@@ -34,75 +35,87 @@ export default function GameHistoryModal({ history, open, onClose, onDeleteGame 
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(20,20,20,0.8)', zIndex: 1200,
-      display: 'flex', alignItems: 'center', justifyContent: 'center'
+      background: 'rgba(10, 13, 20, 0.88)',
+      backdropFilter: 'blur(10px)',
+      WebkitBackdropFilter: 'blur(10px)',
+      zIndex: 12000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '16px'
     }}>
-      <div style={{
-        background: '#222', borderRadius: 20, padding: 32, maxWidth: 700,
-        maxHeight: '75vh', overflowY: 'auto', boxShadow: '0 6px 32px #000b', position: 'relative'
+      <div className="glass-panel" style={{
+        padding: '24px 20px', maxWidth: 680, width: '100%',
+        maxHeight: '85vh', overflowY: 'auto', position: 'relative',
+        boxSizing: 'border-box'
       }}>
-        <button
-          onClick={onClose}
-          style={{
-            position: 'absolute', top: 16, right: 16,
-            background: '#ffd700', color: '#222', fontWeight: 'bold',
-            borderRadius: 9, border: 'none', fontSize: '1.05em',
-            padding: '10px 20px', boxShadow: '0 2px 8px #0008', cursor: 'pointer', zIndex: 2
-          }}
-        >Close</button>
-        <h2 style={{ color: "#ffd700" }}>Past Games</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <h2 style={{ color: "var(--gold-primary)", margin: 0, fontSize: '1.4rem' }}>🏆 Past Games</h2>
+          <button
+            onClick={onClose}
+            className="btn btn-outline-gold"
+            style={{
+              padding: '6px 14px', fontSize: '0.85rem', cursor: 'pointer'
+            }}
+          >
+            ✕ Close
+          </button>
+        </div>
         
         {/* Tab Navigation */}
         <div style={{ 
           display: 'flex', 
-          marginBottom: 20, 
-          borderBottom: '2px solid #444',
+          marginBottom: 16, 
+          background: 'rgba(15, 23, 42, 0.8)',
+          borderRadius: '10px',
+          padding: '4px',
           gap: '4px'
         }}>
           <button
             onClick={() => setActiveTab('all')}
             style={{
-              background: activeTab === 'all' ? '#ffd700' : '#333',
-              color: activeTab === 'all' ? '#222' : '#fff',
+              flex: 1,
+              background: activeTab === 'all' ? 'var(--gold-gradient)' : 'transparent',
+              color: activeTab === 'all' ? '#0f172a' : 'var(--text-secondary)',
               border: 'none',
-              padding: '10px 16px',
-              borderRadius: '8px 8px 0 0',
+              padding: '8px 10px',
+              borderRadius: '8px',
               cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '0.9em'
+              fontWeight: '700',
+              fontSize: '0.85rem'
             }}
           >
-            All Games ({history.length})
+            All ({history.length})
           </button>
           <button
             onClick={() => setActiveTab('multiplayer')}
             style={{
-              background: activeTab === 'multiplayer' ? '#ffd700' : '#333',
-              color: activeTab === 'multiplayer' ? '#222' : '#fff',
+              flex: 1,
+              background: activeTab === 'multiplayer' ? 'var(--gold-gradient)' : 'transparent',
+              color: activeTab === 'multiplayer' ? '#0f172a' : 'var(--text-secondary)',
               border: 'none',
-              padding: '10px 16px',
-              borderRadius: '8px 8px 0 0',
+              padding: '8px 10px',
+              borderRadius: '8px',
               cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '0.9em'
+              fontWeight: '700',
+              fontSize: '0.85rem'
             }}
           >
-            Multiplayer ({multiplayerCount})
+            Multi ({multiplayerCount})
           </button>
           <button
             onClick={() => setActiveTab('solo')}
             style={{
-              background: activeTab === 'solo' ? '#ffd700' : '#333',
-              color: activeTab === 'solo' ? '#222' : '#fff',
+              flex: 1,
+              background: activeTab === 'solo' ? 'var(--gold-gradient)' : 'transparent',
+              color: activeTab === 'solo' ? '#0f172a' : 'var(--text-secondary)',
               border: 'none',
-              padding: '10px 16px',
-              borderRadius: '8px 8px 0 0',
+              padding: '8px 10px',
+              borderRadius: '8px',
               cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '0.9em'
+              fontWeight: '700',
+              fontSize: '0.85rem'
             }}
           >
-            Solo Games ({soloCount})
+            Solo ({soloCount})
           </button>
         </div>
 
@@ -122,9 +135,9 @@ export default function GameHistoryModal({ history, open, onClose, onDeleteGame 
               const isSoloGame = game.players.length === 1;
               
               return (
-                <div key={filteredIdx} style={{
-                  background: "#111", borderRadius: 13, padding: 18, marginBottom: 16,
-                  border: "2px solid #ffd700"
+                <div key={filteredIdx} className="glass-card" style={{
+                  padding: '14px 16px', marginBottom: 14,
+                  borderColor: 'var(--border-gold-glow)'
                 }}>
                   {/* Game Summary (Always Visible) */}
                   <div style={{ cursor: hasDetailedData ? 'pointer' : 'default' }} 
@@ -166,20 +179,19 @@ export default function GameHistoryModal({ history, open, onClose, onDeleteGame 
                           </button>
                         )}
                         <button
-                                                     onClick={(e) => {
-                             e.stopPropagation();
-                             if (window.confirm('Are you sure you want to delete this game? This action cannot be undone.')) {
-                               onDeleteGame(originalIdx);
-                             }
-                           }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingGameIdx(originalIdx);
+                          }}
                           style={{
-                            background: '#dc3545',
-                            border: '1px solid #dc3545',
-                            color: '#fff',
-                            borderRadius: '4px',
+                            background: 'rgba(239, 68, 68, 0.2)',
+                            border: '1px solid rgba(239, 68, 68, 0.5)',
+                            color: '#ef4444',
+                            borderRadius: '6px',
                             padding: '4px 8px',
                             cursor: 'pointer',
-                            fontSize: '0.8em'
+                            fontSize: '0.8em',
+                            fontWeight: '700'
                           }}
                           title="Delete this game"
                         >
@@ -245,26 +257,26 @@ export default function GameHistoryModal({ history, open, onClose, onDeleteGame 
                     <div style={{ 
                       marginTop: 16, 
                       padding: 16, 
-                      background: "#222", 
-                      borderRadius: 8,
-                      border: "1px solid #444"
+                      background: "rgba(15, 23, 42, 0.7)", 
+                      borderRadius: 12,
+                      border: "1px solid var(--border-subtle)",
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.3)"
                     }}>
                       {/* Turn-by-turn breakdown */}
-                      <h4 style={{ color: "#ffd700", marginBottom: 12 }}>Turn-by-Turn Breakdown:</h4>
+                      <h4 style={{ color: "var(--gold-primary)", marginBottom: 12, marginTop: 0, fontSize: "1rem" }}>Turn-by-Turn Breakdown:</h4>
                       <div style={{ 
                         maxHeight: '300px', 
                         overflowY: 'auto',
-                        border: '1px solid #444',
-                        borderRadius: '4px'
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px'
                       }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                           <thead>
-                            <tr style={{ background: '#333', position: 'sticky', top: 0 }}>
-                              <th style={{ padding: '8px', border: '1px solid #444', color: '#ffd700' }}>Turn</th>
-                              <th style={{ padding: '8px', border: '1px solid #444', color: '#ffd700' }}>Player</th>
-                              <th style={{ padding: '8px', border: '1px solid #444', color: '#ffd700' }}>Points</th>
-                              <th style={{ padding: '8px', border: '1px solid #444', color: '#ffd700' }}>Status</th>
-                              <th style={{ padding: '8px', border: '1px solid #444', color: '#ffd700' }}>Time</th>
+                            <tr style={{ background: 'rgba(30, 41, 59, 0.95)', position: 'sticky', top: 0 }}>
+                              <th style={{ padding: '8px', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'var(--gold-primary)', fontSize: '0.85rem' }}>Turn</th>
+                              <th style={{ padding: '8px', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'var(--gold-primary)', fontSize: '0.85rem' }}>Player</th>
+                              <th style={{ padding: '8px', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'var(--gold-primary)', fontSize: '0.85rem' }}>Points</th>
+                              <th style={{ padding: '8px', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'var(--gold-primary)', fontSize: '0.85rem' }}>Status</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -277,45 +289,44 @@ export default function GameHistoryModal({ history, open, onClose, onDeleteGame 
                                 <React.Fragment key={turnIdx}>
                                   {isOvertimeStart && (
                                     <tr>
-                                      <td colSpan="5" style={{
+                                      <td colSpan="4" style={{
                                         padding: '8px',
-                                        background: '#ff9800',
-                                        color: '#000',
+                                        background: 'rgba(245, 158, 11, 0.3)',
+                                        color: 'var(--gold-primary)',
                                         fontWeight: 'bold',
                                         textAlign: 'center',
-                                        border: '1px solid #444'
+                                        border: '1px solid rgba(255, 255, 255, 0.1)'
                                       }}>
                                         🚨 OVERTIME BEGINS 🚨
                                       </td>
                                     </tr>
                                   )}
                                   <tr style={{
-                                    background: turn.wasSkunkd ? '#ffebee' : 
-                                               turn.inOvertime ? '#fff3e0' : '#111',
-                                    color: turn.wasSkunkd ? '#d32f2f' : 
-                                           turn.inOvertime ? '#f57c00' : '#fff'
+                                    background: turn.wasSkunkd ? 'rgba(239, 68, 68, 0.12)' : 
+                                               turn.inOvertime ? 'rgba(245, 158, 11, 0.12)' : 'rgba(15, 23, 42, 0.5)',
+                                    color: turn.wasSkunkd ? '#ef4444' : 
+                                           turn.inOvertime ? '#f59e0b' : 'var(--text-primary)'
                                   }}>
-                                    <td style={{ padding: '8px', border: '1px solid #444', textAlign: 'center' }}>
+                                    <td style={{ padding: '8px', border: '1px solid rgba(255, 255, 255, 0.08)', textAlign: 'center', fontSize: '0.85rem' }}>
                                       {turn.turnNumber}
                                     </td>
-                                    <td style={{ padding: '8px', border: '1px solid #444' }}>
+                                    <td style={{ padding: '8px', border: '1px solid rgba(255, 255, 255, 0.08)', fontWeight: '600', fontSize: '0.85rem' }}>
                                       {turn.playerName}
                                     </td>
                                     <td style={{ 
                                       padding: '8px', 
-                                      border: '1px solid #444', 
+                                      border: '1px solid rgba(255, 255, 255, 0.08)', 
                                       textAlign: 'center',
-                                      fontWeight: turn.pointsBanked > 0 ? 'bold' : 'normal'
+                                      fontWeight: '700',
+                                      fontSize: '0.9rem',
+                                      color: turn.pointsBanked > 0 ? 'var(--gold-primary)' : 'inherit'
                                     }}>
-                                      {turn.pointsBanked}
+                                      {turn.pointsBanked.toLocaleString()}
                                     </td>
-                                    <td style={{ padding: '8px', border: '1px solid #444', textAlign: 'center' }}>
+                                    <td style={{ padding: '8px', border: '1px solid rgba(255, 255, 255, 0.08)', textAlign: 'center', fontSize: '0.82rem', fontWeight: '600' }}>
                                       {turn.wasSkunkd && '🦨 SKUNK\'D'}
                                       {turn.inOvertime && !turn.wasSkunkd && '⏰ Overtime'}
-                                      {!turn.wasSkunkd && !turn.inOvertime && '✅ Normal'}
-                                    </td>
-                                    <td style={{ padding: '8px', border: '1px solid #444', fontSize: '0.8em' }}>
-                                      {new Date(turn.timestamp).toLocaleTimeString()}
+                                      {!turn.wasSkunkd && !turn.inOvertime && '✅ On Board'}
                                     </td>
                                   </tr>
                                 </React.Fragment>
@@ -533,13 +544,43 @@ export default function GameHistoryModal({ history, open, onClose, onDeleteGame 
                         }
                       }}
                     >Copy</button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Delete Confirmation Modal */}
+        {deletingGameIdx !== null && (
+          <div className="confirm-dialog-overlay" onClick={() => setDeletingGameIdx(null)}>
+            <div className="confirm-dialog fade-in" onClick={e => e.stopPropagation()}>
+              <div style={{ fontSize: '2.2rem', marginBottom: 8 }}>🗑️</div>
+              <h3 style={{ margin: '0 0 10px 0', color: 'var(--gold-primary)' }}>Delete Game?</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.4', margin: '0 0 20px 0' }}>
+                Are you sure you want to delete this game record from history? This action cannot be undone.
+              </p>
+              <div className="confirm-dialog-buttons">
+                <button 
+                  className="confirm-yes"
+                  onClick={() => {
+                    onDeleteGame(deletingGameIdx);
+                    setDeletingGameIdx(null);
+                  }}
+                >
+                  Yes, Delete
+                </button>
+                <button 
+                  className="confirm-no"
+                  onClick={() => setDeletingGameIdx(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
-    </div>
-  );
-}
+    );
+  }

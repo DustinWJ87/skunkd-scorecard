@@ -1,106 +1,368 @@
-/* CSS styles for SKUNK'D game */
+/* Modern Design System for SKUNK'D Scorecard */
 
-.dice-box {
-  background: #000;
-  border: 2px solid #fff;
-  border-radius: 8px;
-  width: 60px;
-  height: 60px;
+:root {
+  --bg-dark: #0a0d14;
+  --bg-gradient: radial-gradient(circle at 50% 0%, #1a2233 0%, #0a0d14 100%);
+  --bg-card: rgba(22, 27, 39, 0.85);
+  --bg-card-elevated: rgba(30, 38, 54, 0.95);
+  --border-subtle: rgba(255, 215, 0, 0.18);
+  --border-gold-glow: rgba(255, 215, 0, 0.45);
+  --gold-primary: #ffd700;
+  --gold-dark: #d4af37;
+  --gold-gradient: linear-gradient(135deg, #ffd700 0%, #f59e0b 100%);
+  --green-accent: #10b981;
+  --green-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --red-accent: #ef4444;
+  --red-gradient: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  --blue-accent: #3b82f6;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+}
+
+body {
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: -0.01em;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Responsive Main Container with Notch / Safe Area Support */
+.app-container {
+  max-width: 700px;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 32px);
+  padding-left: calc(env(safe-area-inset-left, 0px) + 12px);
+  padding-right: calc(env(safe-area-inset-right, 0px) + 12px);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    padding-top: 24px;
+    padding-bottom: 48px;
+  }
+}
+
+/* Glassmorphic Surfaces */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.glass-card {
+  background: rgba(30, 37, 51, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.glass-card:hover {
+  border-color: var(--border-subtle);
+}
+
+/* Interactive Elements & Touch States */
+button, .btn {
+  font-family: inherit;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, filter 0.15s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active, .btn:active {
+  transform: scale(0.96);
+  filter: brightness(0.9);
+}
+
+.btn-primary {
+  background: var(--gold-gradient);
+  color: #0f172a;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3);
+}
+
+.btn-primary:active {
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.2);
+}
+
+.btn-success {
+  background: var(--green-gradient);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.btn-danger {
+  background: var(--red-gradient);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+}
+
+.btn-outline-gold {
+  background: rgba(255, 215, 0, 0.08);
+  color: var(--gold-primary);
+  border: 1.5px solid var(--border-gold-glow);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+}
+
+/* Custom Checkbox / Toggle */
+.custom-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  margin: 0;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.custom-checkbox:checked {
+  background: var(--gold-primary);
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.custom-checkbox:checked::before {
+  content: "✓";
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+/* Input Fields */
+.modern-input {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.modern-input:focus {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.18);
+}
+
+/* Player Scoreboard Strips */
+.player-score-strip {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 8px;
-}
-.dice-img {
-  width: 40px;
-  height: 40px;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  background: rgba(26, 34, 48, 0.6);
+  border: 1.5px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
 }
 
-/* Animation for visual feedback */
+.player-score-strip.current-player {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(30, 41, 59, 0.8) 100%);
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.2);
+}
+
+/* Den Points Big Glow Counter */
+.den-counter {
+  background: linear-gradient(135deg, #1e2536 0%, #0f131c 100%);
+  border: 2px solid var(--border-gold-glow);
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+}
+
+.den-points-number {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--gold-primary);
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Badges & Tags */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge-gold {
+  background: rgba(255, 215, 0, 0.18);
+  color: var(--gold-primary);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.badge-green {
+  background: rgba(16, 185, 129, 0.18);
+  color: var(--green-accent);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-red {
+  background: rgba(239, 68, 68, 0.18);
+  color: var(--red-accent);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Responsive Grids & Elements */
+.target-score-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+@media (max-width: 380px) {
+  .target-score-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.quick-roll-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+@media (min-width: 480px) {
+  .quick-roll-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.player-name-text {
+  font-weight: 700;
+  font-size: 1rem;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@media (min-width: 480px) {
+  .player-name-text {
+    max-width: 220px;
+  }
+}
+
+@media (min-width: 768px) {
+  .player-name-text {
+    max-width: 300px;
+  }
+}
+
+/* Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes highlightUndo {
-  0% {
-    background-color: #ff6b35;
-    transform: scale(1);
-  }
-  50% {
-    background-color: #ff8c42;
-    transform: scale(1.05);
-  }
-  100% {
-    background-color: #ff6b35;
-    transform: scale(1);
-  }
-}
-
-.undo-highlight {
-  animation: highlightUndo 0.6s ease;
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .fade-in {
-  animation: fadeIn 0.5s ease;
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Confirmation dialog styles */
+/* Dialog Overlay */
 .confirm-dialog-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000;
+  padding: 20px;
 }
 
 .confirm-dialog {
-  background: #fff;
-  color: #222;
+  background: linear-gradient(135deg, #1c2333 0%, #111622 100%);
+  color: var(--text-primary);
   padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border-gold-glow);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
   max-width: 400px;
+  width: 100%;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .confirm-dialog h3 {
   margin-top: 0;
-  color: #d32f2f;
+  color: var(--gold-primary);
+  font-size: 1.3rem;
 }
 
 .confirm-dialog-buttons {
   display: flex;
   gap: 12px;
   justify-content: center;
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .confirm-dialog-buttons button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
   cursor: pointer;
-  font-weight: bold;
 }
 
 .confirm-dialog-buttons .confirm-yes {
-  background: #d32f2f;
-  color: white;
+  background: var(--red-gradient);
+  color: #fff;
+  border: none;
 }
 
 .confirm-dialog-buttons .confirm-no {
-  background: #ffd700;
-  color: #222;
-}
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}

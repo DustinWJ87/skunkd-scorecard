@@ -1,0 +1,7 @@
+{
+  "name": "skunkd-scorecard",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}

@@ -1,0 +1,12 @@
+{
+  "appId": "com.skunkd.scorecard",
+  "appName": "SKUNK'D Scorecard",
+  "webDir": "build",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#000000"
+    }
+  }
+}
