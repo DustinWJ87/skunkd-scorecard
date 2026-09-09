@@ -258,6 +258,31 @@ export default function App() {
     // Check if the app should open directly (from URL parameter)
     const urlParams = new URLSearchParams(window.location.search);
     const shouldOpenDirectly = urlParams.get('open') === 'true';
+    const viewParam = urlParams.get('view');
+    
+    if (viewParam) {
+      setAppOpened(true);
+      if (viewParam === 'randomizer') {
+        setShowRuleRandomizer(true);
+      } else if (viewParam === 'setup') {
+        setGameStarted(false);
+      } else if (viewParam === 'scoreboard') {
+        setGameStarted(true);
+        setPlayers(['Dusty', 'Ken']);
+        setScores([3500, 2000]);
+        setCurrentPlayerIdx(0);
+        setTargetScore(10000);
+        setElectiveRules({
+          mulligan: true,
+          sixTwoEven: true
+        });
+        setPowerUpUsage({
+          'Dusty': { mulligan: false, sixTwoEven: false },
+          'Ken': { mulligan: true, sixTwoEven: false }
+        });
+      }
+      return;
+    }
     
     if (shouldOpenDirectly) {
       setAppOpened(true);
@@ -1285,9 +1310,9 @@ export default function App() {
                   whiteSpace: 'nowrap'
                 }}
                 onClick={() => setShowRuleRandomizer(true)}
-                title="Roll a die and spin slot reels for random rules"
+                title="Roll a die and spin reels for random rules"
               >
-                <span>🎰</span>
+                <span>🔄</span>
                 <span>Randomize Rules</span>
               </button>
             </div>

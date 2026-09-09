@@ -1,10 +1,27 @@
 import React, { useState } from 'react';
+import { Capacitor } from '@capacitor/core';
 import hoj from './assets/hoj.png';
 import skunkdLogo from './assets/skunkd-logo.png';
 
 export default function GameShopModal({ open, onClose, isSupporter, onSupport }) {
   const [activeTab, setActiveTab] = useState('shop'); // 'shop' | 'community'
   const [thankYouMessage, setThankYouMessage] = useState('');
+
+  const currentPlatform = Capacitor.getPlatform();
+  const isIos = currentPlatform === 'ios';
+  const isAndroid = currentPlatform === 'android';
+
+  const mobilePlatformBadge = isIos 
+    ? 'App Store' 
+    : isAndroid 
+      ? 'Google Play' 
+      : 'iOS & Android';
+
+  const mobileButtonText = isIos
+    ? 'Play Mobile Game on App Store'
+    : isAndroid
+      ? 'Play Mobile Game on Google Play'
+      : 'Play Mobile Game on App Store & Google Play';
 
   if (!open) return null;
 
@@ -245,7 +262,7 @@ export default function GameShopModal({ open, onClose, isSupporter, onSupport })
                   📱 Digital Mobile Game
                 </span>
                 <span style={{ fontSize: '0.7rem', padding: '2px 8px', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', borderRadius: '10px', fontWeight: '700' }}>
-                  iOS & Android
+                  {mobilePlatformBadge}
                 </span>
               </div>
               <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#fff' }}>
@@ -276,7 +293,7 @@ export default function GameShopModal({ open, onClose, isSupporter, onSupport })
                 }}
               >
                 <span>📲</span>
-                <span>Play Mobile Game on App Store & Google Play</span>
+                <span>{mobileButtonText}</span>
                 <span style={{ fontSize: '1.1rem' }}>➔</span>
               </button>
             </div>

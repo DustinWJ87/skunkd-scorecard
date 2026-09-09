@@ -231,28 +231,28 @@ def create_ipad_screenshot(ss_file, tag, title, subtitle, out_name_base):
 def main():
     screens = [
         (
-            "both_sprays_scoreboard.png",
+            "final_sprays_verified.png",
             "Official Companion App",
             "Interactive Live Scoreboard",
             "Track turns, sprays, banked points & instant totals",
             "01_scoreboard"
         ),
         (
-            "randomizer_rolled.png",
+            "randomizer_clean_final.png",
             "Custom Variation Engine",
-            "Slot Rule Randomizer",
-            "Spin 6 customizable reels for wild modifiers",
+            "Dynamic Rule Reels",
+            "Spin customizable reels for unique elective rules",
             "02_rule_randomizer"
         ),
         (
-            "cards_dealt.png",
+            "cards_dealt_clean.png",
             "Cards & Dice Modes",
             "Real-Time Card Deals",
             "Flip cards with suspense and track hand actions",
             "03_cards_mode"
         ),
         (
-            "setup_screen.png",
+            "setup_rules_clean.png",
             "Fast Match Setup",
             "Flexible Game Modes",
             "Custom player line-ups, rulesets, and target scores",

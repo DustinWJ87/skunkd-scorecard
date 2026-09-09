@@ -123,14 +123,15 @@ export const RULE_DEFINITIONS = [
 ];
 
 export default function RuleRandomizerModal({ open, onClose, currentRules, onApplyRules }) {
-  const [activeTab, setActiveTab] = useState('slots'); // 'slots' | 'cards'
-  const [numRules, setNumRules] = useState(3);
+  const urlTab = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('tab') === 'cards' ? 'cards' : 'slots';
+  const [activeTab, setActiveTab] = useState(urlTab); // 'slots' | 'cards'
+  const [numRules, setNumRules] = useState(urlTab === 'cards' ? 4 : 3);
   const [isRollingDie, setIsRollingDie] = useState(false);
-  const [dieDisplayValue, setDieDisplayValue] = useState(3);
+  const [dieDisplayValue, setDieDisplayValue] = useState(urlTab === 'cards' ? 4 : 3);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [selectedRules, setSelectedRules] = useState([]);
+  const [selectedRules, setSelectedRules] = useState(urlTab === 'cards' ? [RULE_DEFINITIONS[0], RULE_DEFINITIONS[1], RULE_DEFINITIONS[2], RULE_DEFINITIONS[3]] : [RULE_DEFINITIONS[1], RULE_DEFINITIONS[2], RULE_DEFINITIONS[4]]);
   const [heldSlots, setHeldSlots] = useState({}); // { [slotIndex]: ruleKey }
-  const [cardsFlipped, setCardsFlipped] = useState([]);
+  const [cardsFlipped, setCardsFlipped] = useState(urlTab === 'cards' ? [true, true, true, true] : []);
   const [reelAnimations, setReelAnimations] = useState([]); // tracks spinning state per reel
   const [expandedRuleKeys, setExpandedRuleKeys] = useState({});
   const [zoomedCard, setZoomedCard] = useState(null); // { img, label }
@@ -138,6 +139,9 @@ export default function RuleRandomizerModal({ open, onClose, currentRules, onApp
   // Initialize with currently selected rules or defaults when opened
   useEffect(() => {
     if (open) {
+      if (urlTab === 'cards') {
+        setCardsFlipped([true, true, true, true]);
+      }
       const activeKeys = Object.keys(currentRules || {}).filter(k => currentRules[k]);
       const initialCount = activeKeys.length > 0 && activeKeys.length <= 6 ? activeKeys.length : 3;
       setNumRules(initialCount);
@@ -421,13 +425,13 @@ export default function RuleRandomizerModal({ open, onClose, currentRules, onApp
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: '1.4rem' }}>🎰</span>
+              <span style={{ fontSize: '1.4rem' }}>🔄</span>
               <h2 style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0, color: 'var(--gold-primary)' }}>
                 Rule Randomizer
               </h2>
             </div>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 2 }}>
-              Roll the die & spin the slot reels for random elective rules!
+              Roll the die & spin the reels for random elective rules!
             </div>
           </div>
           
@@ -463,7 +467,7 @@ export default function RuleRandomizerModal({ open, onClose, currentRules, onApp
               style={{ padding: '8px 12px', fontSize: '0.85rem', fontWeight: '700', borderRadius: '10px' }}
               onClick={() => { setActiveTab('slots'); triggerHaptic(ImpactStyle.Light); }}
             >
-              🎰 Slot Reels
+              🔄 Rule Reels
             </button>
             <button
               type="button"
@@ -603,7 +607,7 @@ export default function RuleRandomizerModal({ open, onClose, currentRules, onApp
                         }}
                       >
                         {isReelSpinning ? (
-                          <span style={{ fontSize: numRules >= 5 ? '1.4rem' : '1.8rem' }}>🎰</span>
+                          <span style={{ fontSize: numRules >= 5 ? '1.4rem' : '1.8rem' }}>🔄</span>
                         ) : (
                           renderShorthandBadge(rule, numRules >= 5 ? 36 : 42)
                         )}
@@ -657,7 +661,7 @@ export default function RuleRandomizerModal({ open, onClose, currentRules, onApp
                   }}
                   onClick={() => triggerRandomize(numRules)}
                 >
-                  <span>🎰</span>
+                  <span>🔄</span>
                   {isSpinning ? 'SPINNING REELS...' : 'SPIN REELS'}
                 </button>
               </div>

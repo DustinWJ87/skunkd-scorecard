@@ -29,8 +29,8 @@ KEY FEATURES:
 • Real-time spray counts, banking calculations, and lead tracking
 • Instant multiplier math and potential score previews
 
-🎰 6-REEL SLOT RULE RANDOMIZER
-• Bring fresh excitement to every round with our built-in slot randomizer!
+🎲 6-REEL RULE RANDOMIZER
+• Bring fresh excitement to every round with our built-in rule randomizer!
 • Spin 6 customizable reels for unique rules, hilarious modifiers, and surprise twists
 • Lock and hold specific reels to customize your custom game variations
 
@@ -64,9 +64,9 @@ Dice & Cards Companion App
 
 ### Promotional Text (max 170 characters)
 ```
-The official companion app for SKUNK'D! Track turns, sprays, banked points, deal cards, and spin the 6-reel slot randomizer for wild game variations.
+The official companion app for SKUNK'D! Track turns, sprays, banked points, deal cards, and spin the 6-reel rule randomizer for wild game variations.
 ```
-*(148 characters)*
+*(143 characters)*
 
 ### Keywords (max 100 characters comma separated, no spaces after commas)
 ```
