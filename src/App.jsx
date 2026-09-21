@@ -476,7 +476,13 @@ export default function App() {
       leaderScore,
       eliminated: [...eliminated],
       winnerIdx,
-      notesHistory
+      notesHistory: [...notesHistory],
+      detailedTurns: [...detailedTurns],
+      currentTurnNumber,
+      skunkLives,
+      skunkLetters: [...skunkLetters],
+      gameOver,
+      powerUpUsage: JSON.parse(JSON.stringify(powerUpUsage))
     };
     setTurnHistory(prev => [...prev, snapshot]);
   }
@@ -493,11 +499,37 @@ export default function App() {
     setLeaderScore(lastSnapshot.leaderScore);
     setEliminated([...lastSnapshot.eliminated]);
     setWinnerIdx(lastSnapshot.winnerIdx);
-    setNotesHistory(lastSnapshot.notesHistory);
+    setNotesHistory(lastSnapshot.notesHistory || []);
+    
+    if (lastSnapshot.detailedTurns !== undefined) {
+      setDetailedTurns([...lastSnapshot.detailedTurns]);
+    }
+    if (lastSnapshot.currentTurnNumber !== undefined) {
+      setCurrentTurnNumber(lastSnapshot.currentTurnNumber);
+    }
+    if (lastSnapshot.skunkLives !== undefined) {
+      setSkunkLives(lastSnapshot.skunkLives);
+    }
+    if (lastSnapshot.skunkLetters !== undefined) {
+      setSkunkLetters([...lastSnapshot.skunkLetters]);
+    }
+    if (lastSnapshot.gameOver !== undefined) {
+      setGameOver(lastSnapshot.gameOver);
+    }
+    if (lastSnapshot.powerUpUsage !== undefined) {
+      setPowerUpUsage(lastSnapshot.powerUpUsage);
+    }
+
+    setPotentialDenPoints(0);
     
     // Remove the last snapshot from history
     setTurnHistory(prev => prev.slice(0, -1));
+    setUndoHistory(prev => (prev.length > 0 ? prev.slice(0, -1) : prev));
     setShowUndoConfirm(false);
+  }
+
+  function handleUndoTurn() {
+    undoLastTurn();
   }
 
   function handleUndoLastTurnClick() {
@@ -547,6 +579,10 @@ export default function App() {
     
     // Reset notes for fresh start
     setNotesHistory([]);
+    
+    // Reset undo histories
+    setTurnHistory([]);
+    setUndoHistory([]);
     
     // Clear any previous saved state when starting fresh
     localStorage.removeItem('skunkd-game-state');
@@ -807,6 +843,10 @@ export default function App() {
     setNotesHistory([]);
     setPowerUpUsage({});
     
+    // Reset undo histories
+    setTurnHistory([]);
+    setUndoHistory([]);
+    
     // Clear saved game state
     localStorage.removeItem('skunkd-game-state');
     setHasSavedGame(false);
@@ -840,6 +880,8 @@ export default function App() {
     setPowerUpUsage({});
     setCurrentTurnNumber(1);
     setNotesHistory([]);
+    setTurnHistory([]);
+    setUndoHistory([]);
     setHasSavedGame(false);
     // Ensure the app shows the setup screen
     setAppOpened(true);
@@ -1895,7 +1937,7 @@ export default function App() {
                     className="confirm-yes"
                     style={{ background: 'var(--gold-gradient)', color: '#0f172a' }}
                     onClick={() => {
-                      handleUndoTurn();
+                      undoLastTurn();
                       setShowUndoConfirm(false);
                     }}
                   >
