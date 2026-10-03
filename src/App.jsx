@@ -244,6 +244,7 @@ export default function App() {
   
   // State for tracking if the app has been opened (defaults to true for standalone app)
   const [appOpened, setAppOpened] = useState(true);
+  const openApp = () => setAppOpened(true);
   
   // State for tracking solo mode
   const [isSoloMode, setIsSoloMode] = useState(false);
@@ -851,40 +852,13 @@ export default function App() {
     localStorage.removeItem('skunkd-game-state');
     setHasSavedGame(false);
     
-    // Reset app opened state to go back to initial screen
-    setAppOpened(false);
+    // Return directly to the game setup screen
+    setAppOpened(true);
   }
 
-  // Open the new-game setup UI (reset game state but keep the setup screen open)
+  // Open the new-game setup UI (reset game state and show the setup screen)
   function openNewGameSetup() {
-    setPlayers([]);
-    setPlayerNames(['']);
-    setScores([]);
-    setCurrentPlayerIdx(0);
-    setGameStarted(false);
-    setElectiveRules(ELECTIVE_RULES.reduce((acc, rule) => {
-      acc[rule.key] = false;
-      return acc;
-    }, {}));
-    setTargetScore(10000);
-    setOvertime(false);
-    setLeaderIdx(null);
-    setLeaderScore(null);
-    setEliminated([]);
-    setWinnerIdx(null);
-    setIsSoloMode(false);
-    setSkunkLives(6);
-    setSkunkLetters([]);
-    setGameOver(false);
-    setDetailedTurns([]);
-    setPowerUpUsage({});
-    setCurrentTurnNumber(1);
-    setNotesHistory([]);
-    setTurnHistory([]);
-    setUndoHistory([]);
-    setHasSavedGame(false);
-    // Ensure the app shows the setup screen
-    setAppOpened(true);
+    resetGame();
   }
 
   // Save game to history
@@ -1897,10 +1871,14 @@ export default function App() {
           {showResetConfirm && (
             <div className="confirm-dialog-overlay" onClick={() => setShowResetConfirm(false)}>
               <div className="confirm-dialog fade-in" onClick={e => e.stopPropagation()}>
-                <div style={{ fontSize: '2.2rem', marginBottom: 8 }}>⚠️</div>
-                <h3 style={{ margin: '0 0 10px 0', color: 'var(--gold-primary)' }}>Reset Game?</h3>
+                <div style={{ fontSize: '2.2rem', marginBottom: 8 }}>{gameOver || winnerIdx !== null ? '🎲' : '⚠️'}</div>
+                <h3 style={{ margin: '0 0 10px 0', color: 'var(--gold-primary)' }}>
+                  {gameOver || winnerIdx !== null ? 'Play Again?' : 'Reset Game?'}
+                </h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.4', margin: '0 0 20px 0' }}>
-                  Are you sure you want to reset? This will end the current game and return to the setup screen. All progress will be lost.
+                  {gameOver || winnerIdx !== null
+                    ? 'Start a new game and return to the setup screen? Your completed game has already been saved to Past Games.'
+                    : 'Are you sure you want to reset? This will end the current game and return to the setup screen. All progress will be lost.'}
                 </p>
                 <div className="confirm-dialog-buttons">
                   <button 
@@ -1910,7 +1888,7 @@ export default function App() {
                       setShowResetConfirm(false);
                     }}
                   >
-                    Yes, Reset
+                    {gameOver || winnerIdx !== null ? 'Yes, Play Again' : 'Yes, Reset'}
                   </button>
                   <button 
                     className="confirm-no"
